@@ -1,5 +1,9 @@
 {
-  "name": "tp8",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1"
+  },
+  "name": "tp9",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -8,9 +12,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.21.1"
-  },
   "description": ""
 }

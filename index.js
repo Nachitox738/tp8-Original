@@ -4,10 +4,10 @@ const cors = require ('cors');
 const app = express();
 const port = 3000;
 
-
-app.use(express.json()) 
-app.use(express.static('./public'));//ejecutar directamente el front cuando corremos el servidor
-app.use(cors());
+//Middleware
+app.use(express.json())
+app.use(express.static('./public')) //Ejecuta directamente el front al correr el servidor
+app.use(cors())
 
 
 const leerDatos = ()=>{
