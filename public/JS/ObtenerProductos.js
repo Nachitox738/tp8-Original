@@ -7,7 +7,7 @@ fetch('./JSON/datos.json')
 
 const mostrarProductos = (datos) => {
     let productos = '';
-    const contenedor = document.querySelector('#divProd');
+    const contenedor = document.querySelector('#contenedor');
     datos.forEach(producto => {
         productos += 
         `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
