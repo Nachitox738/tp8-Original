@@ -14,7 +14,7 @@ const mostrarProductos = (datos) => {
             style="width: 100%; max-width: 300px; margin:30px">
             <img src="${producto.imagen}" class="card-img-top" alt="...">
             <div class="card-body">
-                <h4>${producto.nombre}</h4> <!-- Cambié "titulo" por "nombre" como en el JSON -->
+                <h4>${producto.nombre}</h4>
                 <p class="card-text">${producto.descripcion}</p>
             </div>
             <p class="card-text border border-secondary rounded p-2"><strong>$${producto.precio || '0.00'}</strong></p>
