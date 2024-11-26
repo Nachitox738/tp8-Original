@@ -6,10 +6,13 @@ const contenedor = document.querySelector('#contenedor');
 mostrarMensaje = (mensaje) => {
   document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
 }
-
-document.getElementById('añadir').addEventListener('click', function () {
+document.getElementById('añadir').addEventListener('click', function() {
   const formulario = document.getElementById('prodNuevo');
-  formulario.classList.toggle('new');
+  if (formulario.style.display === 'none' || formulario.style.display === '') {
+      formulario.style.display = 'block'; 
+  } else {
+      formulario.style.display = 'none'; 
+  }
 });
 
 const obtenerDatos = async () => {
