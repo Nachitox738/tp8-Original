@@ -1,20 +1,10 @@
-const endpoint = './JSON/datos.json';
-
+const endpoint = './JSON/datos.json';  
 let productos = '';
 const contenedor = document.querySelector('#contenedor');
 
-mostrarMensaje = (mensaje) => {
+function mostrarMensaje(mensaje) {
   document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
-};
-
-document.getElementById('añadir').addEventListener('click', function() {
-  const formulario = document.getElementById('prodNuevo');
-  if (formulario.style.display === 'none' || formulario.style.display === '') {
-      formulario.style.display = 'block'; 
-  } else {
-      formulario.style.display = 'none'; 
-  }
-});
+}
 
 const obtenerDatos = async () => {
   try {
@@ -34,12 +24,12 @@ const obtenerDatos = async () => {
               <strong>$${prod.precio}</strong>
             </p>
             <div class="d-flex ms-auto">
-              <a href="#prodEditar" class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
-                <i class="bi bi-pencil"></i>
-              </a>
-              <a class="btn btn-outline-danger" type="submit" id="eliminar" onClick="eliminar(${prod.id})">
-                <i class="bi bi-trash"></i>
-              </a>
+              <button class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
+                <i class="bi bi-pencil"></i> Editar
+              </button>
+              <button class="btn btn-outline-danger" onClick="eliminar(${prod.id})">
+                <i class="bi bi-trash"></i> Eliminar
+              </button>
             </div>
           </div>
         </div>`;
@@ -50,36 +40,69 @@ const obtenerDatos = async () => {
   }
 };
 
-obtenerDatos();
+document.getElementById('añadir').addEventListener('click', function() {
+  const formulario = document.getElementById('prodNuevo');
+  formulario.style.display = (formulario.style.display === 'none' ? 'block' : 'none');
+});
+
+document.getElementById('formAñadir').addEventListener('submit', function(event) {
+  event.preventDefault();
+  const nuevoProducto = {
+    nombre: event.target.titulo.value,
+    descripcion: event.target.descripcion.value,
+    precio: parseFloat(event.target.precio.value), 
+    imagen: event.target.imagen.value 
+  };
+
+  if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio || !nuevoProducto.imagen) {
+    document.querySelector('#mensaje').innerHTML = '*Por favor, complete todos los campos.';
+    return;
+  }
+  document.querySelector('#mensaje').innerHTML = '';
+
+  fetch(endpoint, {
+    method: 'POST',
+    body: JSON.stringify(nuevoProducto),
+    headers: { 'Content-Type': 'application/json' }
+  })
+    .then(response => response.json())
+    .then(data => {
+      mostrarMensaje('Producto añadido correctamente');
+      obtenerDatos();
+      document.getElementById('prodNuevo').style.display = 'none'; 
+    })
+    .catch(error => {
+      mostrarMensaje('Error al añadir el producto');
+      console.error(error);
+    });
+});
 
 const eliminar = (id) => {
   if (confirm('¿Seguro que quieres eliminar este producto?')) {
-    fetch(endpoint, {
+    fetch(endpoint + '/' + id, {
       method: 'DELETE',
-      body: JSON.stringify({ id }),
       headers: { 'Content-Type': 'application/json' }
     })
-    .then(res => res.json())
-    .then(response => {
-      mostrarMensaje(response.mensaje);
-      setTimeout(() => {
-        location.reload();
-      }, 1000);
-    })
-    .catch(err => mostrarMensaje('Error al eliminar el producto'));
+      .then(res => res.json())
+      .then(response => {
+        mostrarMensaje(response.mensaje);
+        obtenerDatos();  
+      })
+      .catch(err => mostrarMensaje('Error al eliminar el producto'));
   }
 };
 
 const editar = (id) => {
-  fetch(endpoint)
+  fetch(endpoint + '/' + id)
     .then(res => res.json())
-    .then(productosRecibidos => {
-      const producto = productosRecibidos.find(prod => prod.id === id);
+    .then(producto => {
       const formEditar = document.forms['formEditar'];
       formEditar.idEditar.value = producto.id;
       formEditar.titulo.value = producto.nombre;
       formEditar.descripcion.value = producto.descripcion;
       formEditar.precio.value = producto.precio;
+      formEditar.imagen.value = producto.imagen;
+      
       const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
       modalEditar.show();
     });
@@ -90,12 +113,13 @@ document.forms['formEditar'].addEventListener('submit', (event) => {
   const formEditar = document.forms['formEditar'];
   const nuevosDatos = {
     id: formEditar.idEditar.value,
-    titulo: formEditar.titulo.value,
+    nombre: formEditar.titulo.value,
     descripcion: formEditar.descripcion.value,
-    precio: formEditar.precio.value
+    precio: parseFloat(formEditar.precio.value),
+    imagen: formEditar.imagen.value
   };
 
-  if (!nuevosDatos.titulo || !nuevosDatos.descripcion || !nuevosDatos.precio) {
+  if (!nuevosDatos.nombre || !nuevosDatos.descripcion || !nuevosDatos.precio || !nuevosDatos.imagen) {
     document.querySelector('#mensajeEditar').innerHTML = '*Complete todos los datos';
     return;
   }
@@ -106,12 +130,13 @@ document.forms['formEditar'].addEventListener('submit', (event) => {
     body: JSON.stringify(nuevosDatos),
     headers: { 'Content-Type': 'application/json' }
   })
-  .then(res => res.json())
-  .then(response => {
-    mostrarMensaje(response.mensaje);
-    setTimeout(() => {
-      location.reload();
-    }, 1000);
-  })
-  .catch(err => mostrarMensaje('Error al actualizar el producto'));
+    .then(res => res.json())
+    .then(response => {
+      mostrarMensaje(response.mensaje);
+      obtenerDatos(); 
+      document.getElementById('modalEditar').modal('hide');  
+    })
+    .catch(err => mostrarMensaje('Error al actualizar el producto'));
 });
+
+obtenerDatos();

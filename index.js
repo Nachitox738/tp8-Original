@@ -1,105 +1,89 @@
-const express = require ('express');
-const fs = require ('fs');
-const cors = require ('cors');
+const express = require('express');
+const fs = require('fs');
+const cors = require('cors');
 const app = express();
 const port = 3000;
 
-//Middleware
-app.use(express.json())
-app.use(express.static('./public')) //Ejecuta directamente el front al correr el servidor
-app.use(cors())
+app.use(express.json());  
+app.use(express.static('./public')); 
+app.use(cors());  
+const leerDatos = () => {
+  try {
+    const datos = fs.readFileSync('./JSON/datos.json', 'utf-8');
+    return JSON.parse(datos); 
+  } catch (error) {
+    console.log(error);
+    return { productos: [] };  
+  }
+};
 
+const escribirDatos = (datos) => {
+  try {
+    fs.writeFileSync('./JSON/datos.json', JSON.stringify(datos, null, 2)); 
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-const leerDatos = ()=>{
-    try{
-    const datos = fs.readFileSync('./JSON/datos.json')
-    return JSON.parse(datos)
-    }catch(error){
-        console.log(error)
-    }
-}
+app.get('/productos', (req, res) => {
+  const datos = leerDatos();
+  res.json(datos.productos);  
+});
 
-const escribirDatos = (datos)=>{
-    try{
-    fs.writeFileSync('./JSON/datos.json',JSON.stringify(datos))
+app.post('/productos', (req, res) => {
+  const datos = leerDatos();
+  
+  const nuevoProducto = {
+    id: datos.productos.length + 1, 
+    ...req.body 
+  };
 
-    }catch(error){
-        console.log(error)
-    }
-}
-function reIndexar(datos){
-    let indice =1
-    datos.productos.map((p)=>{
-    p.id = indice;
-    indice++;
-})
-}
+  datos.productos.push(nuevoProducto);
+  escribirDatos(datos);
 
+  res.json({
+    mensaje: 'Nuevo Producto Agregado',
+    Producto: nuevoProducto
+  });
+});
 
-app.get('/productos', (req,res)=>{
-    const datos=leerDatos()
-    res.json(datos.productos)
-})
+app.put('/productos/:id', (req, res) => {
+  const id = req.params.id;
+  const nuevosDatos = req.body;
+  const datos = leerDatos();
+  
+  const prodEncontrado = datos.productos.find((p) => p.id == id);
+  if (!prodEncontrado) {
+    return res.status(404).json('Producto no encontrado');
+  }
 
-app.post('/productos', (req,res)=>{
-    const datos=leerDatos()
-    const nuevoProducto={id:datos.productos.length+1,
-        ...req.body
-    }
-    datos.productos.push(nuevoProducto)
-    escribirDatos(datos)
-    res.json({mensaje:'Nuevo Producto Agregado',
-        Producto:nuevoProducto
-})
-})
+  datos.productos = datos.productos.map(p => p.id == id ? { ...p, ...nuevosDatos } : p);
+  escribirDatos(datos);
 
-app.put('/productos/:id', (req,res)=>{
-    const id = req.params.id
-    const nuevosDatos = req.body
-    const datos=leerDatos()
-    const prodEncontrado = datos.productos.find((p)=>p.id==req.params.id)
+  res.json({
+    mensaje: 'Producto actualizado',
+    Producto: nuevosDatos
+  });
+});
 
-        if(!prodEncontrado){
-          return res.status(404),res.json('No se encuentra el producto')
-        }
+app.delete('/productos/:id', (req, res) => {
+  const id = req.params.id;
+  const datos = leerDatos();
+  const prodEncontrado = datos.productos.find((p) => p.id == id);
 
-        datos.productos = datos.productos.map(p=>p.id==req.params.id?{...p,...nuevosDatos}:p)
-        escribirDatos(datos)
-        res.json({mensaje: 'Productos actualizados', Productos: nuevosDatos})
-})
+  if (!prodEncontrado) {
+    return res.status(404).json('Producto no encontrado');
+  }
 
-app.delete('/productos/:id', (req,res)=>{
-    
-    const id = req.params.id
-    const datos=leerDatos()
-    const prodEncontrado = datos.productos.find((p)=>p.id==req.params.id)
+  datos.productos = datos.productos.filter(p => p.id != id);
+  escribirDatos(datos);
 
-        if(!prodEncontrado){
-          return res.status(404),res.json('No se encuentra el producto')
-        }
+  res.json({
+    mensaje: 'Producto eliminado',
+    Producto: prodEncontrado
+  });
+});
 
-        datos.productos = datos.productos.filter((p)=>p.id!=req.params.id)
-        reIndexar(datos)
-        escribirDatos(datos)
-        res.json({Mensaje:"Producto eliminado", Producto: prodEncontrado})
-})
-
-app.get('/productos/:id', (req,res)=>{
-    const datos=leerDatos()
-    const prodEncontrado = datos.productos.find((p)=>p.id==req.params.id)
-
-        if(!prodEncontrado){
-          return res.status(404),res.json('No se encuentra el producto')
-        }
-        else{
-         return res.json({
-            mensaje: "Producto encontrado",
-            Producto: prodEncontrado
-        })
-        }
-})
-
-app.listen(port, ()=>{
-    console.log(`Servidor corriendo en el puerto ${port}`)
-}
-)
+app.listen(port, () => {
+  console.log(`Servidor corriendo en el puerto ${port}`);
+});
