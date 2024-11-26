@@ -8,6 +8,7 @@ function mostrarMensaje(mensaje) {
 
 const obtenerDatos = async () => {
   try {
+    console.log("Cargando datos desde: " + endpoint);  // Agregar esto para depurar
     const respuesta = await fetch(endpoint);
     const productosRecibidos = await respuesta.json();
     productos = '';
@@ -36,9 +37,11 @@ const obtenerDatos = async () => {
     });
     contenedor.innerHTML = productos;
   } catch (error) {
+    console.error('Error al obtener los productos:', error);
     mostrarMensaje('Error al cargar productos');
   }
 };
+
 
 document.getElementById('añadir').addEventListener('click', function() {
   const formulario = document.getElementById('prodNuevo');
