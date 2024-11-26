@@ -1,26 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const endpoint = './JSON/datos.json';
+  const endpoint = './JSON/datos.json'; 
+
   let productos = '';
   const contenedor = document.querySelector('#contenedor');
-  const nombreContenedorElement = document.querySelector('#nombreContenedor');
   const formulario = document.getElementById('prodNuevo');
-  
+
   mostrarMensaje = (mensaje) => {
     document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
   };
 
-  document.getElementById('añadir').addEventListener('click', function() {
-    formulario.style.display = formulario.style.display === 'none' || formulario.style.display === '' ? 'block' : 'none';
+  document.getElementById('añadir').addEventListener('click', function () {
+    formulario.style.display = formulario.style.display === 'none' ? 'block' : 'none';
   });
 
+  // Obtener productos
   const obtenerDatos = async () => {
     try {
       const respuesta = await fetch(endpoint);
       const datos = await respuesta.json();
-      
-      const nombreContenedor = datos.nombreContenedor;
-      nombreContenedorElement.textContent = nombreContenedor;
-
       productos = '';
       datos.productos.forEach(prod => {
         productos += `
@@ -35,114 +32,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong>$${prod.precio}</strong>
               </p>
               <div class="d-flex ms-auto">
-                <a href="#prodEditar" class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
+                <button class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
                   <i class="bi bi-pencil"></i>
-                </a>
-                <a class="btn btn-outline-danger" type="submit" id="eliminar" onClick="eliminar(${prod.id})">
+                </button>
+                <button class="btn btn-outline-danger" onClick="eliminar(${prod.id})">
                   <i class="bi bi-trash"></i>
-                </a>
+                </button>
               </div>
             </div>
           </div>`;
       });
       contenedor.innerHTML = productos;
     } catch (error) {
+      console.error(error);
       mostrarMensaje('Error al cargar productos');
     }
   };
 
-  const eliminar = (id) => {
-    if (confirm('¿Seguro que quieres eliminar este producto?')) {
-      fetch(endpoint + `/productos/${id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      .then(res => res.json())
-      .then(response => {
-        mostrarMensaje(response.Mensaje);
-        setTimeout(() => location.reload(), 1000);
-      })
-      .catch(err => mostrarMensaje('Error al eliminar el producto'));
-    }
-  };
+  document.getElementById('formAñadir').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nuevoProducto = new FormData(formulario);
+    const producto = {
+      nombre: nuevoProducto.get('nombre'),
+      descripcion: nuevoProducto.get('descripcion'),
+      precio: nuevoProducto.get('precio')
+    };
 
-  const editar = (id) => {
-    fetch(endpoint)
-      .then(res => res.json())
-      .then(datos => {
-        const producto = datos.productos.find(prod => prod.id === id);
-        const formEditar = document.querySelector('#formEditar');
-        
-        formEditar.querySelector('[name="idEditar"]').value = producto.id;
-        formEditar.querySelector('[name="nombre"]').value = producto.nombre;
-        formEditar.querySelector('[name="descripcion"]').value = producto.descripcion;
-        formEditar.querySelector('[name="precio"]').value = producto.precio;
-        
-        document.getElementById('contFormEditar').style.display = 'block';
+    try {
+      const respuesta = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(producto)
       });
+
+      const data = await respuesta.json();
+      console.log(data);
+      formulario.style.display = 'none';  
+      obtenerDatos();  
+    } catch (error) {
+      console.error(error);
+      mostrarMensaje('Error al agregar el producto');
+    }
+  });
+
+  // Eliminar producto
+  eliminar = async (id) => {
+    try {
+      const respuesta = await fetch(`${endpoint}/${id}`, {
+        method: 'DELETE'
+      });
+      const data = await respuesta.json();
+      mostrarMensaje(data.mensaje);
+      obtenerDatos();
+    } catch (error) {
+      console.error(error);
+      mostrarMensaje('Error al eliminar producto');
+    }
   };
 
-  document.forms['formEditar'].addEventListener('submit', (event) => {
-    event.preventDefault();
-    const formEditar = document.forms['formEditar'];
-    const nuevosDatos = {
-      id: formEditar.idEditar.value,
-      nombre: formEditar.nombre.value,
-      descripcion: formEditar.descripcion.value,
-      precio: formEditar.precio.value
-    };
-
-    if (!nuevosDatos.nombre || !nuevosDatos.descripcion || !nuevosDatos.precio) {
-      document.querySelector('#mensajeEditar').innerHTML = '*Complete todos los datos';
-      return;
-    }
-    document.querySelector('#mensajeEditar').innerHTML = '';
-
-    fetch(endpoint + '/productos/' + nuevosDatos.id, {
-      method: 'PUT',
-      body: JSON.stringify(nuevosDatos),
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(res => res.json())
-    .then(response => {
-      mostrarMensaje(response.mensaje);
-      setTimeout(() => location.reload(), 1000);
-    })
-    .catch(err => mostrarMensaje('Error al actualizar el producto'));
-  });
-
-  document.getElementById('formAñadir').addEventListener('submit', function (event) {
-    event.preventDefault();
-    
-    const form = event.target;
-    const nuevoProducto = {
-      nombre: form.nombre.value,
-      descripcion: form.descripcion.value,
-      precio: form.precio.value,
-      imagen: 'https://picsum.photos/200/300?random=1' 
-    };
-
-    if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio) {
-      document.querySelector('#mensaje').textContent = 'Por favor, complete todos los campos.';
-      return;
-    }
-
-    fetch(endpoint + '/productos', {
-      method: 'POST',
-      body: JSON.stringify(nuevoProducto),
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(res => res.json())
-    .then(response => {
-      mostrarMensaje('Producto añadido correctamente');
-      obtenerDatos();
-      form.reset();
-      formulario.style.display = 'none';
-    })
-    .catch(err => {
-      mostrarMensaje('Error al añadir el producto');
-    });
-  });
+  // Editar producto
+  editar = (id) => {
+    alert('Función de edición no implementada aún');
+  };
 
   obtenerDatos();
 });

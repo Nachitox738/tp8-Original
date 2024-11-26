@@ -5,21 +5,22 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(express.static('./public'));
+app.use(express.static('/public'));
 app.use(cors());
 
 const leerDatos = () => {
   try {
-    const datos = fs.readFileSync('./JSON/datos.json');
+    const datos = fs.readFileSync('/public/JSON/datos.json');
     return JSON.parse(datos);
   } catch (error) {
     console.log(error);
+    return { productos: [] }; 
   }
 };
 
 const escribirDatos = (datos) => {
   try {
-    fs.writeFileSync('./JSON/datos.json', JSON.stringify(datos));
+    fs.writeFileSync('/public/JSON/datos.json', JSON.stringify(datos, null, 2));
   } catch (error) {
     console.log(error);
   }
@@ -35,48 +36,48 @@ function reIndexar(datos) {
 
 app.get('/productos', (req, res) => {
   const datos = leerDatos();
-  res.json({ productos: datos.productos });
+  res.json(datos); 
 });
 
 app.post('/productos', (req, res) => {
   const datos = leerDatos();
   const nuevoProducto = {
-    id: datos.productos.length + 1,
+    id: datos.productos.length + 1, 
     ...req.body
   };
   datos.productos.push(nuevoProducto);
   escribirDatos(datos);
-  res.json({ mensaje: 'Producto agregado', producto: nuevoProducto });
+  res.json({ mensaje: 'Nuevo Producto Agregado', Producto: nuevoProducto });
 });
 
 app.put('/productos/:id', (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const nuevosDatos = req.body;
   const datos = leerDatos();
-  const producto = datos.productos.find(p => p.id === id);
+  const prodEncontrado = datos.productos.find((p) => p.id == id);
 
-  if (!producto) {
-    return res.status(404).json({ mensaje: 'Producto no encontrado' });
+  if (!prodEncontrado) {
+    return res.status(404).json('No se encuentra el producto');
   }
 
-  Object.assign(producto, nuevosDatos);
+  datos.productos = datos.productos.map(p => p.id == id ? { ...p, ...nuevosDatos } : p);
   escribirDatos(datos);
-  res.json({ mensaje: 'Producto actualizado', producto });
+  res.json({ mensaje: 'Producto actualizado', Producto: nuevosDatos });
 });
 
 app.delete('/productos/:id', (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const datos = leerDatos();
-  const index = datos.productos.findIndex(p => p.id === id);
+  const prodEncontrado = datos.productos.find((p) => p.id == id);
 
-  if (index === -1) {
-    return res.status(404).json({ mensaje: 'Producto no encontrado' });
+  if (!prodEncontrado) {
+    return res.status(404).json('No se encuentra el producto');
   }
 
-  const [productoEliminado] = datos.productos.splice(index, 1);
+  datos.productos = datos.productos.filter((p) => p.id != id);
   reIndexar(datos);
   escribirDatos(datos);
-  res.json({ mensaje: 'Producto eliminado', producto: productoEliminado });
+  res.json({ mensaje: 'Producto eliminado', Producto: prodEncontrado });
 });
 
 app.listen(port, () => {
