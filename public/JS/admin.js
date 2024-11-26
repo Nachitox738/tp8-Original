@@ -1,6 +1,8 @@
 const endpoint = './JSON/datos.json';
+
 let productos = '';
 const contenedor = document.querySelector('#contenedor');
+
 mostrarMensaje = (mensaje) => {
   document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
 }
@@ -12,6 +14,7 @@ document.getElementById('añadir').addEventListener('click', function() {
       formulario.style.display = 'none'; 
   }
 });
+
 const obtenerDatos = async () => {
   try {
     const respuesta = await fetch(endpoint);
