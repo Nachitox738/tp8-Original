@@ -1,51 +1,49 @@
 const obtenerProductos = () => {
   const productosGuardados = localStorage.getItem('productos');
-  return productosGuardados ? JSON.parse(productosGuardados) : [];
+    if (!productosGuardados) {
+    return [];
+  }
+
+  try {
+    const productos = JSON.parse(productosGuardados);
+
+    if (Array.isArray(productos)) {
+      return productos;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    console.error("Error al parsear los productos desde el localStorage", error);
+    return [];
+  }
 };
 
 const guardarProductos = (productos) => {
   localStorage.setItem('productos', JSON.stringify(productos));
 };
 
-const agregarProducto = (nuevoProducto) => {
-  const productos = obtenerProductos();
-  nuevoProducto.id = productos.length + 1;  
-  productos.push(nuevoProducto);
-  guardarProductos(productos);
-};
-
-const eliminarProducto = (id) => {
-  let productos = obtenerProductos();
-  productos = productos.filter(producto => producto.id !== id);  
-  guardarProductos(productos);
-};
-
-const editarProducto = (id, nuevosDatos) => {
-  let productos = obtenerProductos();
-  productos = productos.map(producto => 
-    producto.id === id ? { ...producto, ...nuevosDatos } : producto
-  );
-  guardarProductos(productos);
-};
-
 const mostrarProductos = () => {
   const productos = obtenerProductos();
+
+  if (!Array.isArray(productos)) {
+    console.error("Los productos no son un arreglo válido");
+    return;
+  }
+
   let productosHTML = '';
 
   productos.forEach(prod => {
     productosHTML += `
-      <div class="card border border-1 border-dark d-flex flex-column align-items-center" style="width: 100%; max-width: 300px; margin: 30px">
-        <img src="${prod.imagen}" class="card-img-top" alt="${prod.nombre}">
-        <div class="card-body">
-          <h4>${prod.nombre}</h4>
-          <p class="card-text">${prod.descripcion}</p>
-        </div>
-        <div class="d-flex justify-content-between align-items-center w-100 mb-2 px-2">
-          <p class="card-text border border-secondary rounded p-2 mb-0">
-            <strong>$${prod.precio}</strong>
-          </p>
-          <div class="d-flex ms-auto">
-            <button class="btn btn-outline-warning me-2" onClick="editar(${prod.id})">
+      <div class="col-md-4 mb-3">
+        <div class="card border border-1 border-dark">
+          <img src="${prod.imagen}" class="card-img-top" alt="${prod.nombre}">
+          <div class="card-body">
+            <h5 class="card-title">${prod.nombre}</h5>
+            <p class="card-text">${prod.descripcion}</p>
+            <p class="card-text"><strong>$${prod.precio}</strong></p>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <button class="btn btn-outline-warning" onClick="editar(${prod.id})">
               <i class="bi bi-pencil"></i> Editar
             </button>
             <button class="btn btn-outline-danger" onClick="eliminar(${prod.id})">
@@ -57,67 +55,80 @@ const mostrarProductos = () => {
     `;
   });
 
-  contenedor.innerHTML = productosHTML;
+  document.getElementById('contenedor').innerHTML = productosHTML;
 };
+document.getElementById('formAñadir').addEventListener('submit', function (event) {
+  event.preventDefault();
+
+  const nuevoProducto = {
+    id: Date.now(), 
+    nombre: event.target.titulo.value,
+    descripcion: event.target.descripcion.value,
+    precio: parseFloat(event.target.precio.value),
+    imagen: event.target.imagen.value
+  };
+
+  if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio || !nuevoProducto.imagen) {
+    alert("Por favor, complete todos los campos.");
+    return;
+  }
+
+  const productos = obtenerProductos();
+
+  productos.push(nuevoProducto);
+
+  guardarProductos(productos);
+
+  event.target.reset();
+  document.getElementById('prodNuevo').style.display = 'none';
+
+  mostrarProductos();
+});
 
 const eliminar = (id) => {
-  if (confirm('¿Seguro que quieres eliminar este producto?')) {
-    eliminarProducto(id);
-    mostrarProductos();  
-  }
+  const productos = obtenerProductos();
+  const productosActualizados = productos.filter(prod => prod.id !== id);
+
+  guardarProductos(productosActualizados);
+
+  mostrarProductos();
 };
 
 const editar = (id) => {
   const productos = obtenerProductos();
   const producto = productos.find(prod => prod.id === id);
 
-  document.querySelector('#idEditar').value = producto.id;
-  document.querySelector('#tituloEditar').value = producto.nombre;
-  document.querySelector('#descripcionEditar').value = producto.descripcion;
-  document.querySelector('#precioEditar').value = producto.precio;
-  document.querySelector('#imagenEditar').value = producto.imagen;
-  document.querySelector('#formEditar').style.display = 'block';
+  if (producto) {
+    document.querySelector('[name="titulo"]').value = producto.nombre;
+    document.querySelector('[name="descripcion"]').value = producto.descripcion;
+    document.querySelector('[name="precio"]').value = producto.precio;
+    document.querySelector('[name="imagen"]').value = producto.imagen;
+
+    document.getElementById('formAñadir').addEventListener('submit', function (event) {
+      event.preventDefault();
+      
+      producto.nombre = event.target.titulo.value;
+      producto.descripcion = event.target.descripcion.value;
+      producto.precio = parseFloat(event.target.precio.value);
+      producto.imagen = event.target.imagen.value;
+
+      const productos = obtenerProductos();
+      const index = productos.findIndex(prod => prod.id === id);
+      productos[index] = producto;
+
+      guardarProductos(productos);
+
+      event.target.reset();
+      document.getElementById('prodNuevo').style.display = 'none';
+
+      mostrarProductos();
+    });
+  }
 };
 
-document.querySelector('#formEditar').addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  const id = parseInt(document.querySelector('#idEditar').value);
-  const nuevosDatos = {
-    nombre: document.querySelector('#tituloEditar').value,
-    descripcion: document.querySelector('#descripcionEditar').value,
-    precio: parseFloat(document.querySelector('#precioEditar').value),
-    imagen: document.querySelector('#imagenEditar').value
-  };
-
-  if (!nuevosDatos.nombre || !nuevosDatos.descripcion || !nuevosDatos.precio || !nuevosDatos.imagen) {
-    alert('Por favor, completa todos los campos.');
-    return;
-  }
-
-  editarProducto(id, nuevosDatos);
-  mostrarProductos();  
-  document.querySelector('#formEditar').style.display = 'none';  
-});
-
-document.querySelector('#formAñadir').addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  const nuevoProducto = {
-    nombre: document.querySelector('#titulo').value,
-    descripcion: document.querySelector('#descripcion').value,
-    precio: parseFloat(document.querySelector('#precio').value),
-    imagen: document.querySelector('#imagen').value
-  };
-
-  if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio || !nuevoProducto.imagen) {
-    alert('Por favor, completa todos los campos.');
-    return;
-  }
-
-  agregarProducto(nuevoProducto);
-  mostrarProductos(); 
-  document.querySelector('#formAñadir').reset();  
+document.getElementById('añadir').addEventListener('click', function () {
+  const formulario = document.getElementById('prodNuevo');
+  formulario.style.display = formulario.style.display === 'none' || formulario.style.display === '' ? 'block' : 'none';
 });
 
 mostrarProductos();
