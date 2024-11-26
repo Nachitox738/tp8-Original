@@ -1,4 +1,4 @@
-const endpoint = './datos.json';
+const endpoint = './JSON/datos.json';
 
 let productos = '';
 const contenedor = document.querySelector('#contenedor');
