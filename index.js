@@ -1,78 +1,86 @@
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
+const cors = require('cors');
 const app = express();
 const port = 3000;
 
-app.use(express.json());
+app.use(express.json());  
+app.use(express.static('./public')); 
+app.use(cors());  
+const leerDatos = () => {
+  try {
+    const datos = fs.readFileSync('./JSON/datos.json', 'utf-8');
+    return JSON.parse(datos); 
+  } catch (error) {
+    console.log(error);
+    return { productos: [] };  
+  }
+};
+
+const escribirDatos = (datos) => {
+  try {
+    fs.writeFileSync('./JSON/datos.json', JSON.stringify(datos, null, 2)); 
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 app.get('/productos', (req, res) => {
-  fs.readFile(path.join(__dirname, 'productos.json'), 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ mensaje: 'Error al leer los productos' });
-    const productos = JSON.parse(data);
-    res.json(productos.productos);
-  });
-});
-o
-app.get('/productos/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  fs.readFile(path.join(__dirname, 'productos.json'), 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ mensaje: 'Error al leer los productos' });
-    const productos = JSON.parse(data);
-    const producto = productos.productos.find(p => p.id === id);
-    if (!producto) return res.status(404).json({ mensaje: 'Producto no encontrado' });
-    res.json(producto);
-  });
+  const datos = leerDatos();
+  res.json(datos.productos);  
 });
 
 app.post('/productos', (req, res) => {
-  const nuevoProducto = req.body;
-  fs.readFile(path.join(__dirname, 'productos.json'), 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ mensaje: 'Error al leer los productos' });
-    const productos = JSON.parse(data);
-    nuevoProducto.id = productos.productos.length ? productos.productos[productos.productos.length - 1].id + 1 : 1;
-    productos.productos.push(nuevoProducto);
-    fs.writeFile(path.join(__dirname, 'productos.json'), JSON.stringify(productos, null, 2), (err) => {
-      if (err) return res.status(500).json({ mensaje: 'Error al guardar el producto' });
-      res.status(201).json({ mensaje: 'Producto añadido correctamente' });
-    });
+  const datos = leerDatos();
+  
+  const nuevoProducto = {
+    id: datos.productos.length + 1, 
+    ...req.body 
+  };
+
+  datos.productos.push(nuevoProducto);
+  escribirDatos(datos);
+
+  res.json({
+    mensaje: 'Nuevo Producto Agregado',
+    Producto: nuevoProducto
   });
 });
 
 app.put('/productos/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const { nombre, descripcion, precio, imagen } = req.body;
+    const id = parseInt(req.params.id);
+    const nuevosDatos = req.body;
+    
+    const datos = leerDatos();
+    const productoIndex = datos.productos.findIndex(p => p.id === id);
+    
+    if (productoIndex === -1) {
+      return res.status(404).json({ mensaje: 'Producto no encontrado' });
+    }
+    datos.productos[productoIndex] = { ...datos.productos[productoIndex], ...nuevosDatos };
+    escribirDatos(datos);
   
-  fs.readFile(path.join(__dirname, 'productos.json'), 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ mensaje: 'Error al leer los productos' });
-    const productos = JSON.parse(data);
-    const productoIndex = productos.productos.findIndex(p => p.id === id);
-    if (productoIndex === -1) return res.status(404).json({ mensaje: 'Producto no encontrado' });
-
-    productos.productos[productoIndex] = { id, nombre, descripcion, precio, imagen };
-    fs.writeFile(path.join(__dirname, 'productos.json'), JSON.stringify(productos, null, 2), (err) => {
-      if (err) return res.status(500).json({ mensaje: 'Error al actualizar el producto' });
-      res.json({ mensaje: 'Producto actualizado correctamente' });
-    });
+    res.json({ mensaje: 'Producto actualizado', producto: datos.productos[productoIndex] });
   });
-});
 
 app.delete('/productos/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  fs.readFile(path.join(__dirname, 'productos.json'), 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ mensaje: 'Error al leer los productos' });
-    const productos = JSON.parse(data);
-    const productoIndex = productos.productos.findIndex(p => p.id === id);
-    if (productoIndex === -1) return res.status(404).json({ mensaje: 'Producto no encontrado' });
+  const id = req.params.id;
+  const datos = leerDatos();
+  const prodEncontrado = datos.productos.find((p) => p.id == id);
 
-    productos.productos.splice(productoIndex, 1);
-    fs.writeFile(path.join(__dirname, 'productos.json'), JSON.stringify(productos, null, 2), (err) => {
-      if (err) return res.status(500).json({ mensaje: 'Error al eliminar el producto' });
-      res.json({ mensaje: 'Producto eliminado correctamente' });
-    });
+  if (!prodEncontrado) {
+    return res.status(404).json('Producto no encontrado');
+  }
+
+  datos.productos = datos.productos.filter(p => p.id != id);
+  escribirDatos(datos);
+
+  res.json({
+    mensaje: 'Producto eliminado',
+    Producto: prodEncontrado
   });
 });
 
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+  console.log(`Servidor corriendo en el puerto ${port}`);
 });
