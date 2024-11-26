@@ -5,7 +5,7 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(express.static('./public')); 
+app.use(express.static('./public'));
 app.use(cors());
 
 const leerDatos = () => {
@@ -35,7 +35,7 @@ function reIndexar(datos) {
 
 app.get('/productos', (req, res) => {
   const datos = leerDatos();
-  res.json(datos.productos);
+  res.json({ productos: datos.productos });
 });
 
 app.post('/productos', (req, res) => {
@@ -46,37 +46,37 @@ app.post('/productos', (req, res) => {
   };
   datos.productos.push(nuevoProducto);
   escribirDatos(datos);
-  res.json({ mensaje: 'Nuevo Producto Agregado', Producto: nuevoProducto });
+  res.json({ mensaje: 'Producto agregado', producto: nuevoProducto });
 });
 
 app.put('/productos/:id', (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
   const nuevosDatos = req.body;
   const datos = leerDatos();
-  const prodEncontrado = datos.productos.find((p) => p.id == req.params.id);
+  const producto = datos.productos.find(p => p.id === id);
 
-  if (!prodEncontrado) {
-    return res.status(404).json('No se encuentra el producto');
+  if (!producto) {
+    return res.status(404).json({ mensaje: 'Producto no encontrado' });
   }
 
-  datos.productos = datos.productos.map(p => p.id == req.params.id ? { ...p, ...nuevosDatos } : p);
+  Object.assign(producto, nuevosDatos);
   escribirDatos(datos);
-  res.json({ mensaje: 'Producto actualizado', Productos: nuevosDatos });
+  res.json({ mensaje: 'Producto actualizado', producto });
 });
 
 app.delete('/productos/:id', (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
   const datos = leerDatos();
-  const prodEncontrado = datos.productos.find((p) => p.id == req.params.id);
+  const index = datos.productos.findIndex(p => p.id === id);
 
-  if (!prodEncontrado) {
-    return res.status(404).json('No se encuentra el producto');
+  if (index === -1) {
+    return res.status(404).json({ mensaje: 'Producto no encontrado' });
   }
 
-  datos.productos = datos.productos.filter((p) => p.id != req.params.id);
+  const [productoEliminado] = datos.productos.splice(index, 1);
   reIndexar(datos);
   escribirDatos(datos);
-  res.json({ Mensaje: 'Producto eliminado', Producto: prodEncontrado });
+  res.json({ mensaje: 'Producto eliminado', producto: productoEliminado });
 });
 
 app.listen(port, () => {

@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
   const endpoint = './JSON/datos.json';
-
   let productos = '';
   const contenedor = document.querySelector('#contenedor');
   const nombreContenedorElement = document.querySelector('#nombreContenedor');
@@ -11,11 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('añadir').addEventListener('click', function() {
-    if (formulario.style.display === 'none' || formulario.style.display === '') {
-      formulario.style.display = 'block'; 
-    } else {
-      formulario.style.display = 'none'; 
-    }
+    formulario.style.display = formulario.style.display === 'none' || formulario.style.display === '' ? 'block' : 'none';
   });
 
   const obtenerDatos = async () => {
@@ -58,17 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const eliminar = (id) => {
     if (confirm('¿Seguro que quieres eliminar este producto?')) {
-      fetch(endpoint, {
+      fetch(endpoint + `/productos/${id}`, {
         method: 'DELETE',
-        body: JSON.stringify({ id }),
         headers: { 'Content-Type': 'application/json' }
       })
       .then(res => res.json())
       .then(response => {
-        mostrarMensaje(response.mensaje);
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
+        mostrarMensaje(response.Mensaje);
+        setTimeout(() => location.reload(), 1000);
       })
       .catch(err => mostrarMensaje('Error al eliminar el producto'));
     }
@@ -79,11 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(datos => {
         const producto = datos.productos.find(prod => prod.id === id);
-        const formEditar = document.forms['formEditar'];
-        formEditar.idEditar.value = producto.id;
-        formEditar.nombre.value = producto.nombre;
-        formEditar.descripcion.value = producto.descripcion;
-        formEditar.precio.value = producto.precio;
+        const formEditar = document.querySelector('#formEditar');
+        
+        formEditar.querySelector('[name="idEditar"]').value = producto.id;
+        formEditar.querySelector('[name="nombre"]').value = producto.nombre;
+        formEditar.querySelector('[name="descripcion"]').value = producto.descripcion;
+        formEditar.querySelector('[name="precio"]').value = producto.precio;
+        
         document.getElementById('contFormEditar').style.display = 'block';
       });
   };
@@ -104,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.querySelector('#mensajeEditar').innerHTML = '';
 
-    fetch(endpoint + '/' + nuevosDatos.id, {
+    fetch(endpoint + '/productos/' + nuevosDatos.id, {
       method: 'PUT',
       body: JSON.stringify(nuevosDatos),
       headers: { 'Content-Type': 'application/json' }
@@ -112,11 +106,42 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(res => res.json())
     .then(response => {
       mostrarMensaje(response.mensaje);
-      setTimeout(() => {
-        location.reload();
-      }, 1000);
+      setTimeout(() => location.reload(), 1000);
     })
     .catch(err => mostrarMensaje('Error al actualizar el producto'));
+  });
+
+  document.getElementById('formAñadir').addEventListener('submit', function (event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const nuevoProducto = {
+      nombre: form.nombre.value,
+      descripcion: form.descripcion.value,
+      precio: form.precio.value,
+      imagen: 'https://picsum.photos/200/300?random=1' 
+    };
+
+    if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio) {
+      document.querySelector('#mensaje').textContent = 'Por favor, complete todos los campos.';
+      return;
+    }
+
+    fetch(endpoint + '/productos', {
+      method: 'POST',
+      body: JSON.stringify(nuevoProducto),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(response => {
+      mostrarMensaje('Producto añadido correctamente');
+      obtenerDatos();
+      form.reset();
+      formulario.style.display = 'none';
+    })
+    .catch(err => {
+      mostrarMensaje('Error al añadir el producto');
+    });
   });
 
   obtenerDatos();
