@@ -53,7 +53,7 @@ app.post('/productos', (req,res)=>{
 })
 })
 
-app.put('/Productos/:id', (req,res)=>{
+app.put('/productos/:id', (req,res)=>{
     const id = req.params.id
     const nuevosDatos = req.body
     const datos=leerDatos()

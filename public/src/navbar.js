@@ -17,7 +17,7 @@ const navbar = `
                 <a class="nav-link" href="contactos.html">Contactanos</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="admin.html">Agregar Productos</a>
+                <a class="nav-link" href="productosadmin.html">Agregar Productos</a>
               </li>
             </ul>
             <div id="salir" style="display: none;">
