@@ -1,124 +1,123 @@
-const endpoint = './JSON/datos.json';  // URL del archivo JSON
-let productos = '';
-const contenedor = document.querySelector('#contenedor'); // Contenedor donde se mostrarán los productos
-
-// Función para mostrar mensajes de confirmación
-const mostrarMensaje = (mensaje) => {
-  document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
+const obtenerProductos = () => {
+  const productosGuardados = localStorage.getItem('productos');
+  return productosGuardados ? JSON.parse(productosGuardados) : [];
 };
 
-// Mostrar u ocultar el formulario al hacer click en "Añadir"
-document.getElementById('añadir').addEventListener('click', function() {
-  const formulario = document.getElementById('prodNuevo');
-  if (formulario.style.display === 'none' || formulario.style.display === '') {
-      formulario.style.display = 'block'; 
-  } else {
-      formulario.style.display = 'none'; 
-  }
-});
+const guardarProductos = (productos) => {
+  localStorage.setItem('productos', JSON.stringify(productos));
+};
 
-// Función para obtener los productos desde el archivo JSON
-const obtenerDatos = async () => {
-  try {
-    const respuesta = await fetch(endpoint);
-    const productosRecibidos = await respuesta.json();
-    contenedor.innerHTML = ''; // Limpia el contenedor antes de agregar nuevos productos
-    productosRecibidos.forEach(prod => {
-      contenedor.innerHTML += `
-        <div class="card border border-1 border-dark d-flex flex-column align-items-center" style="width: 100%; max-width: 300px; margin: 30px">
-          <img src="${prod.imagen}" class="card-img-top" alt="${prod.nombre}">
-          <div class="card-body">
-            <h4>${prod.nombre}</h4>
-            <p class="card-text">${prod.descripcion}</p>
-          </div>
-          <div class="d-flex justify-content-between align-items-center w-100 mb-2 px-2">
-            <p class="card-text border border-secondary rounded p-2 mb-0">
-              <strong>$${prod.precio}</strong>
-            </p>
-            <div class="d-flex ms-auto">
-              <a href="#prodEditar" class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
-                <i class="bi bi-pencil"></i>
-              </a>
-              <a class="btn btn-outline-danger" type="submit" id="eliminar" onClick="eliminar(${prod.id})">
-                <i class="bi bi-trash"></i>
-              </a>
-            </div>
+const agregarProducto = (nuevoProducto) => {
+  const productos = obtenerProductos();
+  nuevoProducto.id = productos.length + 1;  
+  productos.push(nuevoProducto);
+  guardarProductos(productos);
+};
+
+const eliminarProducto = (id) => {
+  let productos = obtenerProductos();
+  productos = productos.filter(producto => producto.id !== id);  
+  guardarProductos(productos);
+};
+
+const editarProducto = (id, nuevosDatos) => {
+  let productos = obtenerProductos();
+  productos = productos.map(producto => 
+    producto.id === id ? { ...producto, ...nuevosDatos } : producto
+  );
+  guardarProductos(productos);
+};
+
+const mostrarProductos = () => {
+  const productos = obtenerProductos();
+  let productosHTML = '';
+
+  productos.forEach(prod => {
+    productosHTML += `
+      <div class="card border border-1 border-dark d-flex flex-column align-items-center" style="width: 100%; max-width: 300px; margin: 30px">
+        <img src="${prod.imagen}" class="card-img-top" alt="${prod.nombre}">
+        <div class="card-body">
+          <h4>${prod.nombre}</h4>
+          <p class="card-text">${prod.descripcion}</p>
+        </div>
+        <div class="d-flex justify-content-between align-items-center w-100 mb-2 px-2">
+          <p class="card-text border border-secondary rounded p-2 mb-0">
+            <strong>$${prod.precio}</strong>
+          </p>
+          <div class="d-flex ms-auto">
+            <button class="btn btn-outline-warning me-2" onClick="editar(${prod.id})">
+              <i class="bi bi-pencil"></i> Editar
+            </button>
+            <button class="btn btn-outline-danger" onClick="eliminar(${prod.id})">
+              <i class="bi bi-trash"></i> Eliminar
+            </button>
           </div>
         </div>
-      `;
-    });
-  } catch (error) {
-    mostrarMensaje('Error al cargar productos');
-  }
+      </div>
+    `;
+  });
+
+  contenedor.innerHTML = productosHTML;
 };
 
-// Llamada inicial para obtener los datos de productos
-obtenerDatos();
-
-// Función para eliminar un producto
 const eliminar = (id) => {
   if (confirm('¿Seguro que quieres eliminar este producto?')) {
-    fetch(endpoint, {
-      method: 'DELETE',
-      body: JSON.stringify({ id }),
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(res => res.json())
-    .then(response => {
-      mostrarMensaje(response.mensaje);
-      setTimeout(() => {
-        location.reload();  // Recargar la página después de la eliminación
-      }, 1000);
-    })
-    .catch(err => mostrarMensaje('Error al eliminar el producto'));
+    eliminarProducto(id);
+    mostrarProductos();  
   }
 };
 
-// Función para editar un producto
 const editar = (id) => {
-  fetch(endpoint)
-    .then(res => res.json())
-    .then(productosRecibidos => {
-      const producto = productosRecibidos.find(prod => prod.id === id);
-      const formEditar = document.forms['formEditar'];
-      formEditar.idEditar.value = producto.id;
-      formEditar.titulo.value = producto.nombre;
-      formEditar.descripcion.value = producto.descripcion;
-      formEditar.precio.value = producto.precio;
-      document.getElementById('contFormEditar').style.display = 'block';  // Mostrar el formulario de edición
-    });
+  const productos = obtenerProductos();
+  const producto = productos.find(prod => prod.id === id);
+
+  document.querySelector('#idEditar').value = producto.id;
+  document.querySelector('#tituloEditar').value = producto.nombre;
+  document.querySelector('#descripcionEditar').value = producto.descripcion;
+  document.querySelector('#precioEditar').value = producto.precio;
+  document.querySelector('#imagenEditar').value = producto.imagen;
+  document.querySelector('#formEditar').style.display = 'block';
 };
 
-// Manejo del formulario de edición
-document.forms['formEditar'].addEventListener('submit', (event) => {
+document.querySelector('#formEditar').addEventListener('submit', (event) => {
   event.preventDefault();
-  const formEditar = document.forms['formEditar'];
+
+  const id = parseInt(document.querySelector('#idEditar').value);
   const nuevosDatos = {
-    id: formEditar.idEditar.value,
-    titulo: formEditar.titulo.value,
-    descripcion: formEditar.descripcion.value,
-    precio: formEditar.precio.value
+    nombre: document.querySelector('#tituloEditar').value,
+    descripcion: document.querySelector('#descripcionEditar').value,
+    precio: parseFloat(document.querySelector('#precioEditar').value),
+    imagen: document.querySelector('#imagenEditar').value
   };
 
-  // Validación de campos vacíos
-  if (!nuevosDatos.titulo || !nuevosDatos.descripcion || !nuevosDatos.precio) {
-    document.querySelector('#mensajeEditar').innerHTML = '*Complete todos los datos';
+  if (!nuevosDatos.nombre || !nuevosDatos.descripcion || !nuevosDatos.precio || !nuevosDatos.imagen) {
+    alert('Por favor, completa todos los campos.');
     return;
   }
-  document.querySelector('#mensajeEditar').innerHTML = '';
 
-  // Enviar la solicitud de actualización
-  fetch(endpoint + '/' + nuevosDatos.id, {
-    method: 'PUT',
-    body: JSON.stringify(nuevosDatos),
-    headers: { 'Content-Type': 'application/json' }
-  })
-  .then(res => res.json())
-  .then(response => {
-    mostrarMensaje(response.mensaje);
-    setTimeout(() => {
-      location.reload();  // Recargar la página después de la actualización
-    }, 1000);
-  })
-  .catch(err => mostrarMensaje('Error al actualizar el producto'));
+  editarProducto(id, nuevosDatos);
+  mostrarProductos();  
+  document.querySelector('#formEditar').style.display = 'none';  
 });
+
+document.querySelector('#formAñadir').addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const nuevoProducto = {
+    nombre: document.querySelector('#titulo').value,
+    descripcion: document.querySelector('#descripcion').value,
+    precio: parseFloat(document.querySelector('#precio').value),
+    imagen: document.querySelector('#imagen').value
+  };
+
+  if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio || !nuevoProducto.imagen) {
+    alert('Por favor, completa todos los campos.');
+    return;
+  }
+
+  agregarProducto(nuevoProducto);
+  mostrarProductos(); 
+  document.querySelector('#formAñadir').reset();  
+});
+
+mostrarProductos();
