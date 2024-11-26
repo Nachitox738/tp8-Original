@@ -5,7 +5,8 @@ const contenedor = document.querySelector('#contenedor');
 
 mostrarMensaje = (mensaje) => {
   document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
-}
+};
+
 document.getElementById('añadir').addEventListener('click', function() {
   const formulario = document.getElementById('prodNuevo');
   if (formulario.style.display === 'none' || formulario.style.display === '') {
@@ -79,7 +80,9 @@ const editar = (id) => {
       formEditar.titulo.value = producto.nombre;
       formEditar.descripcion.value = producto.descripcion;
       formEditar.precio.value = producto.precio;
-      document.getElementById('contFormEditar').style.display = 'block';
+      
+      const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
+      modalEditar.show();
     });
 };
 
