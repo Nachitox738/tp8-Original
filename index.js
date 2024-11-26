@@ -48,23 +48,20 @@ app.post('/productos', (req, res) => {
 });
 
 app.put('/productos/:id', (req, res) => {
-  const id = req.params.id;
-  const nuevosDatos = req.body;
-  const datos = leerDatos();
+    const id = parseInt(req.params.id);
+    const nuevosDatos = req.body;
+    
+    const datos = leerDatos();
+    const productoIndex = datos.productos.findIndex(p => p.id === id);
+    
+    if (productoIndex === -1) {
+      return res.status(404).json({ mensaje: 'Producto no encontrado' });
+    }
+    datos.productos[productoIndex] = { ...datos.productos[productoIndex], ...nuevosDatos };
+    escribirDatos(datos);
   
-  const prodEncontrado = datos.productos.find((p) => p.id == id);
-  if (!prodEncontrado) {
-    return res.status(404).json('Producto no encontrado');
-  }
-
-  datos.productos = datos.productos.map(p => p.id == id ? { ...p, ...nuevosDatos } : p);
-  escribirDatos(datos);
-
-  res.json({
-    mensaje: 'Producto actualizado',
-    Producto: nuevosDatos
+    res.json({ mensaje: 'Producto actualizado', producto: datos.productos[productoIndex] });
   });
-});
 
 app.delete('/productos/:id', (req, res) => {
   const id = req.params.id;

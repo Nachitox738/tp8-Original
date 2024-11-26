@@ -91,9 +91,8 @@ const eliminar = (id) => {
       .catch(err => mostrarMensaje('Error al eliminar el producto'));
   }
 };
-
 const editar = (id) => {
-  fetch(endpoint + '/' + id)
+  fetch(endpoint + '/' + id)  
     .then(res => res.json())
     .then(producto => {
       const formEditar = document.forms['formEditar'];
@@ -105,6 +104,10 @@ const editar = (id) => {
       
       const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
       modalEditar.show();
+    })
+    .catch(error => {
+      console.error("Error al obtener producto:", error);
+      mostrarMensaje('Error al obtener datos del producto');
     });
 };
 
