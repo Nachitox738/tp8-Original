@@ -80,7 +80,6 @@ const editar = (id) => {
       formEditar.titulo.value = producto.nombre;
       formEditar.descripcion.value = producto.descripcion;
       formEditar.precio.value = producto.precio;
-      
       const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
       modalEditar.show();
     });
