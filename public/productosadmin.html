@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
@@ -46,23 +46,12 @@
             </div>
         </div>
 
-        <div class="row">
-            <h1 class="text-light text-center">Listado de Productos</h1>
-            <div class="container">
-                <div class="row">
-                    <div id="contenedor" class="col-lg d-flex flex-wrap flex-row justify-content-center"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalEditarLabel">Editar producto</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
+        <!-- Formulario de edición, oculto inicialmente -->
+        <div id="prodEditar" style="display: none;">
+            <div class="d-flex justify-content-center align-items-center">
+                <div class="card border border-1 border-light" style="width: 100%; max-width: 300px;">
+                    <h5 class="card-title text-center mt-3">Editar Producto</h5>
+                    <div class="card-body">
                         <form id="formEditar">
                             <div class="mb-3">
                                 <input type="text" class="form-control" placeholder="Nombre" name="titulo">
@@ -78,6 +67,15 @@
                             <p id="mensajeEditar" class="text-danger m-2"></p>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <h1 class="text-light text-center">Listado de Productos</h1>
+            <div class="container">
+                <div class="row">
+                    <div id="contenedor" class="col-lg d-flex flex-wrap flex-row justify-content-center"></div>
                 </div>
             </div>
         </div>

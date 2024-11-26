@@ -6,9 +6,10 @@ function mostrarMensaje(mensaje) {
   document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
 }
 
+// Obtener los productos del archivo JSON
 const obtenerDatos = async () => {
   try {
-    console.log("Cargando datos desde: " + endpoint);  // Agregar esto para depurar
+    console.log("Cargando datos desde: " + endpoint); 
     const respuesta = await fetch(endpoint);
     const productosRecibidos = await respuesta.json();
     productos = '';
@@ -42,12 +43,13 @@ const obtenerDatos = async () => {
   }
 };
 
-
+// Mostrar formulario de añadir
 document.getElementById('añadir').addEventListener('click', function() {
   const formulario = document.getElementById('prodNuevo');
   formulario.style.display = (formulario.style.display === 'none' ? 'block' : 'none');
 });
 
+// Añadir un nuevo producto
 document.getElementById('formAñadir').addEventListener('submit', function(event) {
   event.preventDefault();
   const nuevoProducto = {
@@ -80,6 +82,7 @@ document.getElementById('formAñadir').addEventListener('submit', function(event
     });
 });
 
+// Eliminar un producto
 const eliminar = (id) => {
   if (confirm('¿Seguro que quieres eliminar este producto?')) {
     fetch(endpoint + '/' + id, {
@@ -92,57 +95,52 @@ const eliminar = (id) => {
         obtenerDatos();  
       })
       .catch(err => mostrarMensaje('Error al eliminar el producto'));
-  }
+    }
 };
+
+
 const editar = (id) => {
   fetch(endpoint + '/' + id)  
     .then(res => res.json())
     .then(producto => {
-      const formEditar = document.forms['formEditar'];
-      formEditar.idEditar.value = producto.id;
-      formEditar.titulo.value = producto.nombre;
-      formEditar.descripcion.value = producto.descripcion;
-      formEditar.precio.value = producto.precio;
-      formEditar.imagen.value = producto.imagen;
-      
-      const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
-      modalEditar.show();
+      const formularioEditar = document.getElementById('prodEditar');
+      formularioEditar.style.display = 'block';  
+      formularioEditar.querySelector('[name="titulo"]').value = producto.nombre;
+      formularioEditar.querySelector('[name="descripcion"]').value = producto.descripcion;
+      formularioEditar.querySelector('[name="precio"]').value = producto.precio;
+      formularioEditar.querySelector('[name="idEditar"]').value = producto.id;
     })
     .catch(error => {
-      console.error("Error al obtener producto:", error);
-      mostrarMensaje('Error al obtener datos del producto');
+      mostrarMensaje('Error al cargar los datos del producto');
+      console.error(error);
     });
 };
 
-document.forms['formEditar'].addEventListener('submit', (event) => {
+// Editar un producto
+document.getElementById('formEditar').addEventListener('submit', function(event) {
   event.preventDefault();
-  const formEditar = document.forms['formEditar'];
-  const nuevosDatos = {
-    id: formEditar.idEditar.value,
-    nombre: formEditar.titulo.value,
-    descripcion: formEditar.descripcion.value,
-    precio: parseFloat(formEditar.precio.value),
-    imagen: formEditar.imagen.value
+  const id = event.target.idEditar.value;
+  const productoEditado = {
+    nombre: event.target.titulo.value,
+    descripcion: event.target.descripcion.value,
+    precio: parseFloat(event.target.precio.value)
   };
 
-  if (!nuevosDatos.nombre || !nuevosDatos.descripcion || !nuevosDatos.precio || !nuevosDatos.imagen) {
-    document.querySelector('#mensajeEditar').innerHTML = '*Complete todos los datos';
-    return;
-  }
-  document.querySelector('#mensajeEditar').innerHTML = '';
-
-  fetch(endpoint + '/' + nuevosDatos.id, {
+  fetch(endpoint + '/' + id, {
     method: 'PUT',
-    body: JSON.stringify(nuevosDatos),
+    body: JSON.stringify(productoEditado),
     headers: { 'Content-Type': 'application/json' }
   })
     .then(res => res.json())
-    .then(response => {
-      mostrarMensaje(response.mensaje);
-      obtenerDatos(); 
-      document.getElementById('modalEditar').modal('hide');  
+    .then(data => {
+      mostrarMensaje('Producto editado correctamente');
+      obtenerDatos();
+      document.getElementById('prodEditar').style.display = 'none';  
     })
-    .catch(err => mostrarMensaje('Error al actualizar el producto'));
+    .catch(err => {
+      mostrarMensaje('Error al editar el producto');
+      console.error(err);
+    });
 });
 
 obtenerDatos();
