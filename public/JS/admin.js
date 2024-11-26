@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const producto = datos.productos.find(prod => prod.id === id);
         const formEditar = document.forms['formEditar'];
         formEditar.idEditar.value = producto.id;
-        formEditar.titulo.value = producto.nombre;
+        formEditar.nombre.value = producto.nombre;
         formEditar.descripcion.value = producto.descripcion;
         formEditar.precio.value = producto.precio;
         document.getElementById('contFormEditar').style.display = 'block';
@@ -93,12 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const formEditar = document.forms['formEditar'];
     const nuevosDatos = {
       id: formEditar.idEditar.value,
-      titulo: formEditar.titulo.value,
+      nombre: formEditar.nombre.value,
       descripcion: formEditar.descripcion.value,
       precio: formEditar.precio.value
     };
 
-    if (!nuevosDatos.titulo || !nuevosDatos.descripcion || !nuevosDatos.precio) {
+    if (!nuevosDatos.nombre || !nuevosDatos.descripcion || !nuevosDatos.precio) {
       document.querySelector('#mensajeEditar').innerHTML = '*Complete todos los datos';
       return;
     }
