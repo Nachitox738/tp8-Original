@@ -46,5 +46,12 @@
     "nombre": "Guantes Térmicos Azules",
     "descripcion": "Oferta UNICA, 40% de descuento con tarjeta MASTERCARD",
     "precio":245
-}   
+} ,
+{
+    "id":8,
+    "imagen":"./imagenes/guantes7.jpg",
+    "nombre":"Guantes Térmicos Azules 2",
+    "descripcion":"aaaaaaaa",
+    "precio":4444
+} 
 ]}
