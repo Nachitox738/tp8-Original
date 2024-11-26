@@ -1,10 +1,9 @@
-const endpoint = 'https://editorial-9o6g.onrender.com/productos'
+const endpoint = './index.js'
 
 mostrarMensaje = (mensaje) => {
   document.querySelector('#divMensaje').innerHTML = mensaje;
 }
 
-// Event listener para el botón "Añadir Producto"
 document.getElementById('añadir').addEventListener('click', function () {
   const formulario = document.getElementById('prodNuevo');
   formulario.classList.toggle('new');
@@ -14,8 +13,7 @@ fetch(endpoint)
   .then(respuesta => respuesta.json())
   .then(datos => obtenerDatos(datos))
 
-// mostrar los datos enviados al back desde el front
-let productos = ''
+  let productos = ''
 const contenedor = document.querySelector('#divProdNuevo')
 
 const obtenerDatos = async () => {
@@ -56,8 +54,6 @@ const obtenerDatos = async () => {
   }
 }
 
-
-// agregar producto
 const formulario = document.forms['formAñadir']
 console.log(formulario)
 formulario.addEventListener('submit', (event) => {
@@ -67,7 +63,6 @@ formulario.addEventListener('submit', (event) => {
   let precio = formulario.precio.value
   let imagen = formulario.titulo.value + ".jpg";
 
-  // Objetos con los datos obtenidos en el formulario
   let newDatos = { titulo: titulo, descripcion: descripcion, precio: precio, imagen: imagen }
 
 
@@ -81,7 +76,7 @@ formulario.addEventListener('submit', (event) => {
 
   let nuevosDatosJson = JSON.stringify(newDatos)
   console.log(nuevosDatosJson)
-  const enviarNewProducto = async () => { //enviar datos al back
+  const enviarNewProducto = async () => {
     try {
       const enviarDatos = await fetch(endpoint, {
         method: 'post',
@@ -91,19 +86,16 @@ formulario.addEventListener('submit', (event) => {
         body: nuevosDatosJson
       })
 
-      //obtengo la respuesta del back
       const respuesta = await enviarDatos.json()
       console.log(respuesta)
       let mensaje = document.querySelector('#divMensaje');
       mensaje.className += 'bg-warning';
       mensaje.innerHTML = respuesta.mensaje;
 
-      //limpiar formulario y ocultarlo
       document.querySelector('#formAñadir').style.display = 'none';
 
       mostrarMensaje(respuesta.mensaje)
 
-      //refrescar la pagina
       setTimeout(() => {
         location.reload();
       }, 1000);
@@ -116,15 +108,13 @@ formulario.addEventListener('submit', (event) => {
   enviarNewProducto()
 })
 
-// eliminar producto por atrevido gato..
 const eliminar = (id) => {
   if (confirm('posta queres eliminar?')) {
     const eliminarProd = async () => {
       try {
-        const res = await fetch(endpoint + '/' + id, { // endpoint con param
+        const res = await fetch(endpoint + '/' + id, {
           method: 'delete'
         })
-        //obtengo respuesta
         const respuesta = await res.json()
         console.log(respuesta)
         mostrarMensaje(respuesta.mensaje)
@@ -140,17 +130,15 @@ const eliminar = (id) => {
 
 const formEditar = document.forms['formEditar']
 
-// editar los productos
 const editar = (id) => {
 
   console.log(id)
 
-  // abro form editar
 
   let prodEditar = {}
 
 
-  productosRecibidos.filter(prod => { //recorro los datos del json para ubicar el prod al editar
+  productosRecibidos.filter(prod => { 
     if (prod.id == id) {
       prodEditar = prod
     }
@@ -159,10 +147,6 @@ const editar = (id) => {
   })
 
 
-  // console.log(prodEditar)
-
-
-  // asignar valores obtenidos al formulario
   formEditar.idEditar.value = prodEditar.id;
   formEditar.titulo.value = prodEditar.titulo;
   formEditar.descripcion.value = prodEditar.descripcion;
