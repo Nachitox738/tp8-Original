@@ -4,15 +4,15 @@ const cors = require ('cors');
 const app = express();
 const port = 3000;
 
-//Middleware
-app.use(express.json())
-app.use(express.static('./public')) //Ejecuta directamente el front al correr el servidor
-app.use(cors())
+
+app.use(express.json()) 
+app.use(express.static('/public'));//ejecutar directamente el front cuando corremos el servidor
+app.use(cors());
 
 
 const leerDatos = ()=>{
     try{
-    const datos = fs.readFileSync('./JSON/datos.json')
+    const datos = fs.readFileSync('/JSON/datos.json')
     return JSON.parse(datos)
     }catch(error){
         console.log(error)
@@ -21,7 +21,7 @@ const leerDatos = ()=>{
 
 const escribirDatos = (datos)=>{
     try{
-    fs.writeFileSync('./JSON/datos.json',JSON.stringify(datos))
+    fs.writeFileSync('/JSON/datos.json',JSON.stringify(datos))
 
     }catch(error){
         console.log(error)
@@ -100,6 +100,6 @@ app.get('/productos/:id', (req,res)=>{
 })
 
 app.listen(port, ()=>{
-    console.log(`Servidor corriendo en el puerto ${port}`)
+    console.log(`servidor corriendo en el puerto ${port}`)
 }
 )
