@@ -6,15 +6,17 @@ const contenedor = document.querySelector('#contenedor');
 mostrarMensaje = (mensaje) => {
   document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
 }
+
 document.getElementById('añadir').addEventListener('click', function() {
   const formulario = document.getElementById('prodNuevo');
   if (formulario.style.display === 'none' || formulario.style.display === '') {
-      formulario.style.display = 'block'; 
+    formulario.style.display = 'block';
   } else {
-      formulario.style.display = 'none'; 
+    formulario.style.display = 'none';
   }
 });
 
+// Obtener los datos de los productos
 const obtenerDatos = async () => {
   try {
     const respuesta = await fetch(endpoint);
@@ -51,11 +53,11 @@ const obtenerDatos = async () => {
 
 obtenerDatos();
 
+// Eliminar producto
 const eliminar = (id) => {
   if (confirm('¿Seguro que quieres eliminar este producto?')) {
-    fetch(endpoint, {
+    fetch(endpoint + '/' + id, {
       method: 'DELETE',
-      body: JSON.stringify({ id }),
       headers: { 'Content-Type': 'application/json' }
     })
     .then(res => res.json())
@@ -69,6 +71,7 @@ const eliminar = (id) => {
   }
 };
 
+// Editar producto
 const editar = (id) => {
   fetch(endpoint)
     .then(res => res.json())
@@ -83,6 +86,7 @@ const editar = (id) => {
     });
 };
 
+// Actualizar producto
 document.forms['formEditar'].addEventListener('submit', (event) => {
   event.preventDefault();
   const formEditar = document.forms['formEditar'];
