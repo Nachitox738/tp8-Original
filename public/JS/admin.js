@@ -1,97 +1,160 @@
-const cargarProductos = () => {
-  const productos = JSON.parse(localStorage.getItem('productos')) || { productos: [] };
-  const contenedor = document.querySelector("#productos");
-  contenedor.innerHTML = ''; 
+const endpoint = './JSON/datos.json';  
+let productos = '';
+const contenedor = document.querySelector('#contenedor');
 
-  productos.productos.forEach(producto => {
-      const productoHtml = `
-          <div class="col-12 col-md-4 col-lg-3 mb-4">
-              <div class="card" style="width: 18rem;">
-                  <img src="${producto.imagen}" class="card-img-top" alt="${producto.nombre}">
-                  <div class="card-body">
-                      <h5 class="card-title">${producto.nombre}</h5>
-                      <p class="card-text">${producto.descripcion}</p>
-                      <p class="card-text">$${producto.precio}</p>
-                      <button class="btn btn-warning" onclick="editarProducto(${producto.id})">Editar</button>
-                      <button class="btn btn-danger" onclick="eliminarProducto(${producto.id})">Eliminar</button>
-                  </div>
-              </div>
+function mostrarMensaje(mensaje) {
+  document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
+}
+
+document.getElementById('añadir').addEventListener('click', function () {
+  const formulario = document.getElementById('prodNuevo');
+  if (formulario.style.display === 'none' || formulario.style.display === '') {
+    formulario.style.display = 'block';
+  } else {
+    formulario.style.display = 'none';
+  }
+});
+
+const obtenerDatos = async () => {
+  try {
+    const respuesta = await fetch(endpoint);
+    const productosRecibidos = await respuesta.json();
+    productos = '';
+    productosRecibidos.forEach(prod => {
+      productos += `
+        <div class="card border border-1 border-dark d-flex flex-column align-items-center" style="width: 100%; max-width: 300px; margin: 30px">
+          <img src="${prod.imagen}" class="card-img-top" alt="${prod.nombre}">
+          <div class="card-body">
+            <h4>${prod.nombre}</h4>
+            <p class="card-text">${prod.descripcion}</p>
           </div>
-      `;
-      contenedor.innerHTML += productoHtml;
-  });
-};
-
-const mostrarMensaje = (mensaje) => {
-  const divMensaje = document.querySelector("#mensajeConfirmacion");
-  divMensaje.innerHTML = mensaje;
-  setTimeout(() => {
-      divMensaje.innerHTML = '';
-  }, 2000);
-};
-
-const añadirProducto = (producto) => {
-  const productos = JSON.parse(localStorage.getItem('productos')) || { productos: [] };
-  const idNuevo = productos.productos.length ? productos.productos[productos.productos.length - 1].id + 1 : 1;
-  producto.id = idNuevo;
-  productos.productos.push(producto);
-  localStorage.setItem('productos', JSON.stringify(productos));
-  mostrarMensaje('Producto añadido');
-  cargarProductos();
-};
-
-const editarProducto = (id) => {
-  const productos = JSON.parse(localStorage.getItem('productos')) || { productos: [] };
-  const producto = productos.productos.find(p => p.id === id);
-  
-  if (producto) {
-      const formEditar = document.forms['formAñadir'];
-      formEditar.titulo.value = producto.nombre;
-      formEditar.descripcion.value = producto.descripcion;
-      formEditar.precio.value = producto.precio;
-
-      document.querySelector('#prodNuevo').style.display = 'block';
-      formEditar.onsubmit = (e) => {
-          e.preventDefault();
-          const productoEditado = {
-              nombre: formEditar.titulo.value,
-              descripcion: formEditar.descripcion.value,
-              precio: parseFloat(formEditar.precio.value),
-          };
-
-          const index = productos.productos.findIndex(p => p.id === id);
-          if (index !== -1) {
-              productos.productos[index] = { ...productos.productos[index], ...productoEditado };
-              localStorage.setItem('productos', JSON.stringify(productos));
-              mostrarMensaje('Producto actualizado');
-              cargarProductos();
-          }
-      };
+          <div class="d-flex justify-content-between align-items-center w-100 mb-2 px-2">
+            <p class="card-text border border-secondary rounded p-2 mb-0">
+              <strong>$${prod.precio}</strong>
+            </p>
+            <div class="d-flex ms-auto">
+              <a href="#prodEditar" class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a class="btn btn-outline-danger" type="submit" id="eliminar" onClick="eliminar(${prod.id})">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </div>
+        </div>`;
+    });
+    contenedor.innerHTML = productos;
+  } catch (error) {
+    mostrarMensaje('Error al cargar productos');
   }
 };
 
-const eliminarProducto = (id) => {
-  const productos = JSON.parse(localStorage.getItem('productos')) || { productos: [] };
-  const productosFiltrados = productos.productos.filter(p => p.id !== id);
-  localStorage.setItem('productos', JSON.stringify({ productos: productosFiltrados }));
-  mostrarMensaje('Producto eliminado');
-  cargarProductos();
+obtenerDatos();
+
+const eliminar = (id) => {
+  if (confirm('¿Seguro que quieres eliminar este producto?')) {
+    fetch(endpoint + '/' + id, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(res => res.json())
+      .then(response => {
+        mostrarMensaje(response.Mensaje);
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      })
+      .catch(err => mostrarMensaje('Error al eliminar el producto'));
+  }
 };
 
-document.getElementById('añadir').addEventListener('click', () => {
-  document.querySelector('#prodNuevo').style.display = 'block';
-  document.forms['formAñadir'].onsubmit = (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const nuevoProducto = {
-          nombre: form.titulo.value,
-          descripcion: form.descripcion.value,
-          precio: parseFloat(form.precio.value),
-          imagen: './imagenes/default.jpg',  
-      };
-      añadirProducto(nuevoProducto);
-      form.reset();
+const editar = (id) => {
+  fetch(endpoint + '/' + id)
+    .then(res => res.json())
+    .then(producto => {
+      const formEditar = document.forms['formEditar'];
+      formEditar.idEditar.value = producto.id;
+      formEditar.titulo.value = producto.nombre;
+      formEditar.descripcion.value = producto.descripcion;
+      formEditar.precio.value = producto.precio;
+      formEditar.imagen.value = producto.imagen;
+      
+      const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
+      modalEditar.show();
+    })
+    .catch(error => {
+      console.error("Error al obtener producto:", error);
+      mostrarMensaje('Error al obtener datos del producto');
+    });
+};
+
+document.forms['formEditar'].addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formEditar = document.forms['formEditar'];
+  const nuevosDatos = {
+    id: formEditar.idEditar.value,
+    titulo: formEditar.titulo.value,
+    descripcion: formEditar.descripcion.value,
+    precio: formEditar.precio.value,
+    imagen: formEditar.imagen.value
   };
+
+  if (!nuevosDatos.titulo || !nuevosDatos.descripcion || !nuevosDatos.precio) {
+    document.querySelector('#mensajeEditar').innerHTML = '*Complete todos los datos';
+    return;
+  }
+  document.querySelector('#mensajeEditar').innerHTML = '';
+
+  fetch(endpoint + '/' + nuevosDatos.id, {
+    method: 'PUT',
+    body: JSON.stringify(nuevosDatos),
+    headers: { 'Content-Type': 'application/json' }
+  })
+    .then(res => res.json())
+    .then(response => {
+      mostrarMensaje(response.mensaje);
+      const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
+      modalEditar.hide();
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    })
+    .catch(err => {
+      console.error("Error al editar producto:", err);
+      mostrarMensaje('Error al editar el producto');
+    });
 });
 
-document.addEventListener('DOMContentLoaded', cargarProductos);
+document.forms['formAñadir'].addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formAñadir = document.forms['formAñadir'];
+  const nuevoProducto = {
+    nombre: formAñadir.titulo.value,
+    descripcion: formAñadir.descripcion.value,
+    precio: formAñadir.precio.value,
+    imagen: formAñadir.imagen.value
+  };
+
+  if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio) {
+    document.querySelector('#mensaje').innerHTML = '*Complete todos los campos';
+    return;
+  }
+  document.querySelector('#mensaje').innerHTML = '';
+
+  fetch(endpoint, {
+    method: 'POST',
+    body: JSON.stringify(nuevoProducto),
+    headers: { 'Content-Type': 'application/json' }
+  })
+    .then(res => res.json())
+    .then(response => {
+      mostrarMensaje('Producto añadido correctamente');
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    })
+    .catch(err => {
+      console.error("Error al añadir producto:", err);
+      mostrarMensaje('Error al añadir el producto');
+    });
+});
