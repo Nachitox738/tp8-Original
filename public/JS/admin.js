@@ -1,20 +1,30 @@
-const endpoint = './JSON/datos.json';  
+const endpoint = './JSON/datos.json';  // URL del archivo JSON
 let productos = '';
-const contenedor = document.querySelector('#contenedor');
+const contenedor = document.querySelector('#contenedor'); // Contenedor donde se mostrarán los productos
 
-function mostrarMensaje(mensaje) {
+// Función para mostrar mensajes de confirmación
+const mostrarMensaje = (mensaje) => {
   document.querySelector('#mensajeConfirmacion').innerHTML = mensaje;
-}
+};
 
-// Obtener los productos del archivo JSON
+// Mostrar u ocultar el formulario al hacer click en "Añadir"
+document.getElementById('añadir').addEventListener('click', function() {
+  const formulario = document.getElementById('prodNuevo');
+  if (formulario.style.display === 'none' || formulario.style.display === '') {
+      formulario.style.display = 'block'; 
+  } else {
+      formulario.style.display = 'none'; 
+  }
+});
+
+// Función para obtener los productos desde el archivo JSON
 const obtenerDatos = async () => {
   try {
-    console.log("Cargando datos desde: " + endpoint); 
     const respuesta = await fetch(endpoint);
     const productosRecibidos = await respuesta.json();
-    productos = '';
+    contenedor.innerHTML = ''; // Limpia el contenedor antes de agregar nuevos productos
     productosRecibidos.forEach(prod => {
-      productos += `
+      contenedor.innerHTML += `
         <div class="card border border-1 border-dark d-flex flex-column align-items-center" style="width: 100%; max-width: 300px; margin: 30px">
           <img src="${prod.imagen}" class="card-img-top" alt="${prod.nombre}">
           <div class="card-body">
@@ -26,121 +36,89 @@ const obtenerDatos = async () => {
               <strong>$${prod.precio}</strong>
             </p>
             <div class="d-flex ms-auto">
-              <button class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
-                <i class="bi bi-pencil"></i> Editar
-              </button>
-              <button class="btn btn-outline-danger" onClick="eliminar(${prod.id})">
-                <i class="bi bi-trash"></i> Eliminar
-              </button>
+              <a href="#prodEditar" class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a class="btn btn-outline-danger" type="submit" id="eliminar" onClick="eliminar(${prod.id})">
+                <i class="bi bi-trash"></i>
+              </a>
             </div>
           </div>
-        </div>`;
+        </div>
+      `;
     });
-    contenedor.innerHTML = productos;
   } catch (error) {
-    console.error('Error al obtener los productos:', error);
     mostrarMensaje('Error al cargar productos');
   }
 };
 
-// Mostrar formulario de añadir
-document.getElementById('añadir').addEventListener('click', function() {
-  const formulario = document.getElementById('prodNuevo');
-  formulario.style.display = (formulario.style.display === 'none' ? 'block' : 'none');
-});
+// Llamada inicial para obtener los datos de productos
+obtenerDatos();
 
-// Añadir un nuevo producto
-document.getElementById('formAñadir').addEventListener('submit', function(event) {
-  event.preventDefault();
-  const nuevoProducto = {
-    nombre: event.target.titulo.value,
-    descripcion: event.target.descripcion.value,
-    precio: parseFloat(event.target.precio.value), 
-    imagen: event.target.imagen.value 
-  };
-
-  if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio || !nuevoProducto.imagen) {
-    document.querySelector('#mensaje').innerHTML = '*Por favor, complete todos los campos.';
-    return;
-  }
-  document.querySelector('#mensaje').innerHTML = '';
-
-  fetch(endpoint, {
-    method: 'POST',
-    body: JSON.stringify(nuevoProducto),
-    headers: { 'Content-Type': 'application/json' }
-  })
-    .then(response => response.json())
-    .then(data => {
-      mostrarMensaje('Producto añadido correctamente');
-      obtenerDatos();
-      document.getElementById('prodNuevo').style.display = 'none'; 
-    })
-    .catch(error => {
-      mostrarMensaje('Error al añadir el producto');
-      console.error(error);
-    });
-});
-
-// Eliminar un producto
+// Función para eliminar un producto
 const eliminar = (id) => {
   if (confirm('¿Seguro que quieres eliminar este producto?')) {
-    fetch(endpoint + '/' + id, {
+    fetch(endpoint, {
       method: 'DELETE',
+      body: JSON.stringify({ id }),
       headers: { 'Content-Type': 'application/json' }
     })
-      .then(res => res.json())
-      .then(response => {
-        mostrarMensaje(response.mensaje);
-        obtenerDatos();  
-      })
-      .catch(err => mostrarMensaje('Error al eliminar el producto'));
-    }
+    .then(res => res.json())
+    .then(response => {
+      mostrarMensaje(response.mensaje);
+      setTimeout(() => {
+        location.reload();  // Recargar la página después de la eliminación
+      }, 1000);
+    })
+    .catch(err => mostrarMensaje('Error al eliminar el producto'));
+  }
 };
 
-
+// Función para editar un producto
 const editar = (id) => {
-  fetch(endpoint + '/' + id)  
+  fetch(endpoint)
     .then(res => res.json())
-    .then(producto => {
-      const formularioEditar = document.getElementById('prodEditar');
-      formularioEditar.style.display = 'block';  
-      formularioEditar.querySelector('[name="titulo"]').value = producto.nombre;
-      formularioEditar.querySelector('[name="descripcion"]').value = producto.descripcion;
-      formularioEditar.querySelector('[name="precio"]').value = producto.precio;
-      formularioEditar.querySelector('[name="idEditar"]').value = producto.id;
-    })
-    .catch(error => {
-      mostrarMensaje('Error al cargar los datos del producto');
-      console.error(error);
+    .then(productosRecibidos => {
+      const producto = productosRecibidos.find(prod => prod.id === id);
+      const formEditar = document.forms['formEditar'];
+      formEditar.idEditar.value = producto.id;
+      formEditar.titulo.value = producto.nombre;
+      formEditar.descripcion.value = producto.descripcion;
+      formEditar.precio.value = producto.precio;
+      document.getElementById('contFormEditar').style.display = 'block';  // Mostrar el formulario de edición
     });
 };
 
-// Editar un producto
-document.getElementById('formEditar').addEventListener('submit', function(event) {
+// Manejo del formulario de edición
+document.forms['formEditar'].addEventListener('submit', (event) => {
   event.preventDefault();
-  const id = event.target.idEditar.value;
-  const productoEditado = {
-    nombre: event.target.titulo.value,
-    descripcion: event.target.descripcion.value,
-    precio: parseFloat(event.target.precio.value)
+  const formEditar = document.forms['formEditar'];
+  const nuevosDatos = {
+    id: formEditar.idEditar.value,
+    titulo: formEditar.titulo.value,
+    descripcion: formEditar.descripcion.value,
+    precio: formEditar.precio.value
   };
 
-  fetch(endpoint + '/' + id, {
+  // Validación de campos vacíos
+  if (!nuevosDatos.titulo || !nuevosDatos.descripcion || !nuevosDatos.precio) {
+    document.querySelector('#mensajeEditar').innerHTML = '*Complete todos los datos';
+    return;
+  }
+  document.querySelector('#mensajeEditar').innerHTML = '';
+
+  // Enviar la solicitud de actualización
+  fetch(endpoint + '/' + nuevosDatos.id, {
     method: 'PUT',
-    body: JSON.stringify(productoEditado),
+    body: JSON.stringify(nuevosDatos),
     headers: { 'Content-Type': 'application/json' }
   })
-    .then(res => res.json())
-    .then(data => {
-      mostrarMensaje('Producto editado correctamente');
-      obtenerDatos();
-      document.getElementById('prodEditar').style.display = 'none';  
-    })
-    .catch(err => {
-      mostrarMensaje('Error al editar el producto');
-      console.error(err);
-    });
+  .then(res => res.json())
+  .then(response => {
+    mostrarMensaje(response.mensaje);
+    setTimeout(() => {
+      location.reload();  // Recargar la página después de la actualización
+    }, 1000);
+  })
+  .catch(err => mostrarMensaje('Error al actualizar el producto'));
 });
-
-obtenerDatos();
