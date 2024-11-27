@@ -12,10 +12,7 @@ fetch('./data/datos.json')
     .catch(error => console.log('Error al cargar los productos:', error));
 
 const mostrarProductos = (productos) => {
-    if (!Array.isArray(productos)) {
-        console.error('La variable "productos" no es un array:', productos);
-        return;
-    }
+ 
     
     let contenido = '';
     const contenedor = document.querySelector('#divProd');
