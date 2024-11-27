@@ -1,5 +1,5 @@
 let productos = '';
-const contenedor = document.querySelector('#divProdNuevo');
+const contenedor = document.querySelector('#divProd');
 const endpoint = './data/datos.json'; 
 
 const obtenerDatos = async () => {
