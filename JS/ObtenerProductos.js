@@ -11,6 +11,8 @@ fetch('./data/datos.json')
     })
     .catch(error => console.log('Error al cargar los productos:', error));
 
+let productos = ''
+
 const mostrarProductos = (productos) => {
  
     let contenido = '';
