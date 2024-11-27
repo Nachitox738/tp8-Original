@@ -32,7 +32,7 @@ const navbar = `
                     </ul>
                 </li>
                 
-                    <button id="botonLogOut" class="btn btn-outline-danger" onclick="logOut()" type="submit">Salir</button>
+                    <button id="botonLogOut" class="btn btn-outline-danger text-light" onclick="logOut()" type="submit">Salir</button>
                   
             </ul>
           </div>
