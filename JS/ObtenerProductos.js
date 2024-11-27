@@ -1,22 +1,38 @@
-fetch ('./JSON/datos.json')
-.then (respuesta=>respuesta.json())
-//.then(datos=>console.log(datos))
-.then(datos=>mostrarProductos(datos))
-const mostrarProductos = (datos) => {
-    let productos=''
-    const contenedor = document.querySelector('#contenedor')
-    datos.forEach(dato => {
-        productos+=`
-        <div class="card me-3 mt-3" style="width: 100%; max-width: 250px;">
-              <img src="${dato.imagen}" class="card-img-top" style="height: 300px; width: 240px;" alt="...">
-              <div class="card-body">
-                <h5 class="card-title">${dato.nombre}</h5>
-                <p class="card-text">${dato.descripcion}</p>
-                <div style="margin-left:20px;">
-                  <a href="#" class="btn btn-primary m-auto"style="width: 170px;">Comprar</a>
-                </div>
-                </div>
-            </div>`
+fetch('./JSON/datos.json')
+    .then(respuesta => {
+        if (!respuesta.ok) {
+            throw new Error('Error al cargar el archivo JSON');
+        }
+        return respuesta.json();
+    })
+    .then(datos => {
+        console.log(datos);
+        mostrarProductos(datos.productos);
+    })
+    .catch(error => console.log('Error al cargar los productos:', error));
+
+const mostrarProductos = (productos) => {
+    if (!Array.isArray(productos)) {
+        console.error('La variable "productos" no es un array:', productos);
+        return;
+    }
+    
+    let contenido = '';
+    const contenedor = document.querySelector('#divProd');
+    
+    productos.forEach(producto => {
+        contenido += 
+        `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
+            style="width: 100%; max-width: 300px; margin:30px">
+            <img src="${producto.imagen}" class="card-img-top" alt="...">
+            <div class="card-body">
+                <h4>${producto.titulo}</h4>
+                <p class="card-text">${producto.descripcion}</p>
+            </div>
+            <p class="card-text border border-secondary rounded p-2"><strong>${producto.precio}</strong></p>
+            <button class="btn btn-outline-success mt-auto mb-3" type="submit">Comprar</button>
+        </div>`;
     });
-    contenedor.innerHTML = productos
+
+    contenedor.innerHTML = contenido;
 }
