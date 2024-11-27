@@ -31,7 +31,7 @@ const obtenerDatos = async () => {
     productosRecibidos = await respuesta.json()
     productosRecibidos.forEach(prod => {
       productos +=
-        `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
+        `<div class="card border border-1 border-dark d-flex flex-column bg-dark text-light align-items-center"
                   style="width: 100%; max-width: 300px; margin:30px">
                   <img src="${prod.imagen}" class="card-img-top" alt="...">
                   <div class="card-body ">
@@ -59,6 +59,7 @@ const obtenerDatos = async () => {
     })
     contenedor.innerHTML = productos
   } catch (error) {
+    console.log(error)
     mostrarMensaje('error al cargar productos')
   }
 }
