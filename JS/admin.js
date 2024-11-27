@@ -1,50 +1,39 @@
-const endpoint = './data/datos.json'
-mostrarMensaje = (mensaje) => {
-  document.querySelector('#divMensaje').innerHTML = mensaje;
-}
-
-let form=document.querySelector('#prodNuevo')
-form.style.display= 'none';
-let añadir=document.querySelector('#añadir')
-
-  añadir.addEventListener('click', ()=>{
-    
-    form.style.display = "block";
-  });
-// Event listener para el botón "Añadir Producto"
-document.getElementById('añadir').addEventListener('click', function () {
-  const formulario = document.getElementById('prodNuevo');
-  formulario.classList.toggle('new');
-});
+fetch('./data/datos.json')
+    .then(respuesta => {
+        if (!respuesta.ok) {
+            throw new Error('Error al cargar el archivo JSON');
+        }
+        return respuesta.json();
+    })
+    .then(datos => {
+        console.log(datos);
+        mostrarProductos(datos.productos);
+    })
+    .catch(error => console.log('Error al cargar los productos:', error));
 
 
-
-fetch(endpoint)
-  .then(respuesta => respuesta.json())
-  .then(datos => obtenerDatos(datos))
-
-// mostrar los datos enviados al back desde el front
-let productos = ''
-const contenedor = document.querySelector('#divProdNuevo')
-
-const obtenerDatos = async () => {
-  try {
-    const respuesta = await fetch(endpoint)
-    productosRecibidos = await respuesta.json()
-    productosRecibidos.forEach(prod => {
-      productos +=
-        `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
-                  style="width: 100%; max-width: 300px; margin:30px">
-                  <img src="${prod.imagen}" class="card-img-top" alt="...">
-                  <div class="card-body ">
-                      <h4>${prod.titulo}</h4>
-                      <p class="card-text ">${prod.descripcion}</p>
-                  </div>
-      <div class="d-flex justify-content-between align-items-center w-100 mb-2 px-2">
-        <p class="card-text border border-secondary rounded p-2 mb-0">
-          <strong>${prod.precio}</strong>
-        </p>
-        <div class="d-flex ms-auto">
+const mostrarProductos = (productos) => {
+  if (!Array.isArray(productos)) {
+      console.error('La variable "productos" no es un array:', productos);
+      return;
+  }
+  
+  let contenido = '';
+  const contenedor = document.querySelector('#divProd');
+  
+  productos.forEach(producto => {
+      contenido += 
+      `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
+          style="width: 100%; max-width: 300px; margin:30px">
+          <img src="${producto.imagen}" class="card-img-top" alt="...">
+          <div class="card-body">
+              <h4>${producto.titulo}</h4>
+              <p class="card-text">${producto.descripcion}</p>
+          </div>
+          <p class="card-text border border-secondary rounded p-2"><strong>${producto.precio}</strong></p>
+          <button class="btn btn-outline-success mt-auto mb-3" type="submit">Comprar</button>
+          
+          <div class="d-flex ms-auto">
           <a href="#prodEditar" class="btn btn-outline-warning me-2 edit" onClick="editar(${prod.id})">
             <i class="bi bi-pencil"></i>
           </a>
@@ -53,15 +42,8 @@ const obtenerDatos = async () => {
             <i class="bi bi-trash" id="eliminar"></i>
           </a>
         </div>
-      </div>
-      
-      
-              </div>`
+      </div>`;
+  });
 
-    })
-    contenedor.innerHTML = productos
-  } catch (error) {
-    mostrarMensaje('error al cargar productos')
-  }
+  contenedor.innerHTML = contenido;
 }
-
