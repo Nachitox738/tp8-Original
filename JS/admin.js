@@ -1,4 +1,4 @@
-const endpoint = './JSON/datos.json'
+const endpoint = './data/datos.json'
 mostrarMensaje = (mensaje) => {
   document.querySelector('#divMensaje').innerHTML = mensaje;
 }

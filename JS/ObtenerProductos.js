@@ -1,4 +1,4 @@
-fetch('./JSON/datos.json')
+fetch('./data/datos.json')
     .then(respuesta => {
         if (!respuesta.ok) {
             throw new Error('Error al cargar el archivo JSON');
