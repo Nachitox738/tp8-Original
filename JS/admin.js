@@ -25,12 +25,17 @@ fetch(endpoint)
 let productos = ''
 const contenedor = document.querySelector('#divProdNuevo')
 
-const obtenerDatos = async () => {
-  try {
-    const respuesta = await fetch(endpoint)
-    productosRecibidos = await respuesta.json()
-    productosRecibidos.forEach(prod => {
-      productos +=
+const mostrarProductos = (productos) => {
+    if (!Array.isArray(productos)) {
+        console.error('La variable "productos" no es un array:', productos);
+        return;
+    }
+    
+    let contenido = '';
+    const contenedor = document.querySelector('#divProd');
+    
+    productos.forEach(producto => {
+        contenido += 
         `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
                   style="width: 100%; max-width: 300px; margin:30px">
                   <img src="${prod.imagen}" class="card-img-top" alt="...">
@@ -52,11 +57,9 @@ const obtenerDatos = async () => {
           </a>
         </div>
       </div>
-              </div>`
+              </div>`;
     })
-    contenedor.innerHTML = productos
-  } catch (error) {
-    mostrarMensaje('error al cargar productos')
-  }
+    contenedor.innerHTML = productos;
+
 }
 
