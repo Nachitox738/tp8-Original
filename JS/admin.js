@@ -35,7 +35,7 @@ const obtenerDatos = async () => {
                   style="width: 100%; max-width: 300px; margin:30px">
                   <img src="${prod.imagen}" class="card-img-top" alt="...">
                   <div class="card-body ">
-                      <h4>${prod.nombre}</h4>
+                      <h4>${prod.titulo}</h4>
                       <p class="card-text ">${prod.descripcion}</p>
                   </div>
       <div class="d-flex justify-content-between align-items-center w-100 mb-2 px-2">
