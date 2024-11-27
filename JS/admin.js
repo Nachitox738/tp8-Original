@@ -3,14 +3,14 @@ mostrarMensaje = (mensaje) => {
   document.querySelector('#divMensaje').innerHTML = mensaje;
 }
 
-let form=document.querySelector('#prodNuevo')
-form.style.display= 'none';
-let añadir=document.querySelector('#añadir')
+let form = document.querySelector('#prodNuevo')
+form.style.display = 'none';
+let añadir = document.querySelector('#añadir')
 
-  añadir.addEventListener('click', ()=>{
-    
-    form.style.display = "block";
-  });
+añadir.addEventListener('click', () => {
+
+  form.style.display = "block";
+});
 document.getElementById('añadir').addEventListener('click', function () {
   const formulario = document.getElementById('prodNuevo');
   formulario.classList.toggle('new');
@@ -23,7 +23,7 @@ fetch(endpoint)
   .then(datos => obtenerDatos(datos))
 
 let productos = ''
-const contenedor = document.querySelector('#divProdNuevo')
+const contenedor = document.querySelector('#divProd')
 
 const obtenerDatos = async () => {
   try {
