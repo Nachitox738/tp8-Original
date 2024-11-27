@@ -3,14 +3,14 @@ mostrarMensaje = (mensaje) => {
   document.querySelector('#divMensaje').innerHTML = mensaje;
 }
 
-let form = document.querySelector('#prodNuevo')
-form.style.display = 'none';
-let añadir = document.querySelector('#añadir')
+let form=document.querySelector('#prodNuevo')
+form.style.display= 'none';
+let añadir=document.querySelector('#añadir')
 
-añadir.addEventListener('click', () => {
-
-  form.style.display = "block";
-});
+  añadir.addEventListener('click', ()=>{
+    
+    form.style.display = "block";
+  });
 document.getElementById('añadir').addEventListener('click', function () {
   const formulario = document.getElementById('prodNuevo');
   formulario.classList.toggle('new');
@@ -23,7 +23,7 @@ fetch(endpoint)
   .then(datos => obtenerDatos(datos))
 
 let productos = ''
-const contenedor = document.querySelector('#divProd')
+const contenedor = document.querySelector('#divProdNuevo')
 
 const obtenerDatos = async () => {
   try {
@@ -31,7 +31,7 @@ const obtenerDatos = async () => {
     productosRecibidos = await respuesta.json()
     productosRecibidos.forEach(prod => {
       productos +=
-        `<div class="card border border-1 border-dark d-flex flex-column bg-dark text-light align-items-center"
+        `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
                   style="width: 100%; max-width: 300px; margin:30px">
                   <img src="${prod.imagen}" class="card-img-top" alt="...">
                   <div class="card-body ">
@@ -52,14 +52,10 @@ const obtenerDatos = async () => {
           </a>
         </div>
       </div>
-      
-      
               </div>`
-
     })
     contenedor.innerHTML = productos
   } catch (error) {
-    console.log(error)
     mostrarMensaje('error al cargar productos')
   }
 }
