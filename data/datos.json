@@ -1,4 +1,4 @@
-{"productos":[{
+[{
     "imagen": "./imagenes/guantes1.jpg",
     "titulo": "Guantes para el frio negros",
     "descripcion": "Producto con 20% de descuento",
@@ -40,4 +40,4 @@
     "descripcion": "Oferta UNICA, 40% de descuento con tarjeta MASTERCARD",
     "precio":245
 } 
-]}
+]
