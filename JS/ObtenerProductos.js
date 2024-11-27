@@ -1,50 +1,25 @@
-let productos = '';
-const contenedor = document.querySelector('#divProd');
-const endpoint = './data/datos.json'; 
+fetch('./data/datos.json')
 
-const obtenerDatos = async () => {
-    try {
-        const respuesta = await fetch(endpoint);
-        
-        if (!respuesta.ok) {
-            throw new Error('Error al cargar los datos');
-        }
+    .then(respuesta => respuesta.json())
+    .then(datos => mostrarProductos(datos))
 
-        const productosRecibidos = await respuesta.json();
-        
-        if (!Array.isArray(productosRecibidos)) {
-            throw new Error('Los datos recibidos no son un array');
-        }
+const mostrarProductos = (datos) => {
+    let productos = ''
+    const contenedor = document.querySelector('#divProd')
+    datos.forEach(datos => {
+        productos += 
+        `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
+            style="width: 100%; max-width: 300px; margin:30px">
+            <img src="${datos.imagen}" class="card-img-top" alt="...">
+            <div class="card-body ">
+                <h4>${datos.titulo}</h4>
+                <p class="card-text ">${datos.descripcion}</p>
 
-        productosRecibidos.forEach(prod => {
-            productos += `
-                <div class="card border border-1 border-dark d-flex flex-column align-items-center" style="width: 100%; max-width: 300px; margin:30px">
-                    <img src="${prod.imagen}" class="card-img-top" alt="...">
-                    <div class="card-body ">
-                        <h4>${prod.titulo}</h4>
-                        <p class="card-text ">${prod.descripcion}</p>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center w-100 mb-2 px-2">
-                        <p class="card-text border border-secondary rounded p-2 mb-0">
-                          <strong>${prod.precio}</strong>
-                        </p>
-                    </div>      
-                </div>
-            `;
-        });
-        
-        contenedor.innerHTML = productos;
-
-    } catch (error) {
-        console.error(error);
-        mostrarMensaje('Error al cargar productos');
-    }
-};
-
-const mostrarMensaje = (mensaje) => {
-    const contenedorMensaje = document.querySelector('#mensajeError');
-    contenedorMensaje.textContent = mensaje;
-    contenedorMensaje.style.display = 'block';
-};
-
-obtenerDatos();
+            </div>
+                <p class="card-text border border-secondary rounded p-2"><strong>${datos.precio}</strong></p>
+                <button class="btn btn-outline-success mt-auto mb-3" type="submit">Comprar</button>
+        </div>
+        `
+    })
+    contenedor.innerHTML = productos
+}
