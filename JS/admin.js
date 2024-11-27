@@ -1,35 +1,9 @@
-const endpoint = './data/datos.json'
-mostrarMensaje = (mensaje) => {
-  document.querySelector('#divMensaje').innerHTML = mensaje;
-}
-
-let form=document.querySelector('#prodNuevo')
-form.style.display= 'none';
-let añadir=document.querySelector('#añadir')
-
-  añadir.addEventListener('click', ()=>{
-    
-    form.style.display = "block";
-  });
-document.getElementById('añadir').addEventListener('click', function () {
-  const formulario = document.getElementById('prodNuevo');
-  formulario.classList.toggle('new');
-});
-
-
-
-fetch(endpoint)
-  .then(respuesta => respuesta.json())
-  .then(datos => obtenerDatos(datos))
-
-let productos = ''
-const contenedor = document.querySelector('#divProdNuevo')
-
-const obtenerDatos = async () => {
+// Definir la función obtenerDatos primero
+const obtenerDatos = async (datos) => {
   try {
-    const respuesta = await fetch(endpoint)
-    productosRecibidos = await respuesta.json()
-    productosRecibidos.forEach(prod => {
+    // No es necesario volver a hacer fetch si ya pasamos los datos
+    productos = '';  // Resetear la variable productos antes de agregar los nuevos productos
+    datos.forEach(prod => {
       productos +=
         `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
                   style="width: 100%; max-width: 300px; margin:30px">
@@ -54,11 +28,20 @@ const obtenerDatos = async () => {
       </div>
       
       
-              </div>`
-
-    })
-    contenedor.innerHTML = productos
+              </div>`;
+    });
+    const contenedor = document.querySelector('#divProd');
+    contenedor.innerHTML = productos;
   } catch (error) {
-    mostrarMensaje('error al cargar productos')
+    mostrarMensaje('Error al cargar productos');
   }
 }
+
+const endpoint = './JSON/datos.json';
+
+fetch(endpoint)
+  .then(respuesta => respuesta.json())
+  .then(datos => obtenerDatos(datos.productos)) 
+  .catch(error => {
+    mostrarMensaje('Error al cargar los datos');
+  });
