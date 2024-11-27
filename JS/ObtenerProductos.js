@@ -13,7 +13,6 @@ fetch('./data/datos.json')
 
 const mostrarProductos = (productos) => {
  
-    
     let contenido = '';
     const contenedor = document.querySelector('#divProd');
     
