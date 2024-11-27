@@ -1,13 +1,26 @@
 fetch('./JSON/datos.json')
-    .then(respuesta => respuesta.json())
-    .then(datos => mostrarProductos(datos.productos)) 
+    .then(respuesta => {
+        if (!respuesta.ok) {
+            throw new Error('Error al cargar el archivo JSON');
+        }
+        return respuesta.json();
+    })
+    .then(datos => {
+        console.log(datos);
+        mostrarProductos(datos.productos);
+    })
     .catch(error => console.log('Error al cargar los productos:', error));
 
-const mostrarProductos = (productos) => { 
+const mostrarProductos = (productos) => {
+    if (!Array.isArray(productos)) {
+        console.error('La variable "productos" no es un array:', productos);
+        return;
+    }
+    
     let contenido = '';
     const contenedor = document.querySelector('#divProd');
     
-    productos.forEach(producto => { 
+    productos.forEach(producto => {
         contenido += 
         `<div class="card border border-1 border-dark d-flex flex-column align-items-center"
             style="width: 100%; max-width: 300px; margin:30px">
